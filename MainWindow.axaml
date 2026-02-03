@@ -1,0 +1,23 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Elumatec.Tijdregistratie.TijdregistratieWindow"
+        Width="400"
+        Height="300"
+        Title="My First Avalonia App">
+
+    <StackPanel Spacing="10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+
+        <TextBlock Text="Hello Avalonia!"
+                   FontSize="20"
+                   HorizontalAlignment="Center"/>
+
+        <Button Content="Button One"
+                Width="150"/>
+
+        <Button Content="Button Two"
+                Width="150"/>
+
+    </StackPanel>
+</Window>
