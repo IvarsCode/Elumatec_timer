@@ -1,23 +1,65 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Elumatec.Tijdregistratie.ViewModels"
+        xmlns:conv="clr-namespace:Elumatec.Tijdregistratie.Converters"
         x:Class="Elumatec.Tijdregistratie.TijdregistratieWindow"
-        Width="400"
-        Height="300"
-        Title="My First Avalonia App">
+        Width="750"
+        Height="500"
+        Title="Elumatec">
 
-    <StackPanel Spacing="10"
+    <Window.DataContext>
+        <vm:UserSelectionViewModel/>
+    </Window.DataContext>
+
+    <Window.Resources>
+        <conv:IsNotNullConverter x:Key="IsNotNullConverter"/>
+    </Window.Resources>
+
+    <StackPanel Spacing="12"
+                Margin="20"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+                VerticalAlignment="Center"
+                Width="400">
 
-        <TextBlock Text="Hello Avalonia!"
-                   FontSize="20"
+        <!-- Title -->
+        <TextBlock Text="Naam werknemer:"
+                   FontSize="22"
+                   FontWeight="Bold"
                    HorizontalAlignment="Center"/>
 
-        <Button Content="Button One"
-                Width="150"/>
+        <!-- Search box -->
+        <TextBox Watermark="Zoek werknemer..."
+                 Text="{Binding SearchText, Mode=TwoWay}"/>
 
-        <Button Content="Button Two"
-                Width="150"/>
+        <!-- Search results -->
+        <ItemsControl ItemsSource="{Binding FilteredUsers}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding Naam}"
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding DataContext.SelectUserCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Recent user -->
+        <TextBlock Text="Meest recente gebruiker"
+                   Margin="0,10,0,0"
+                   FontWeight="SemiBold"
+                   IsVisible="{Binding RecentUser, Converter={StaticResource IsNotNullConverter}}"/>
+        
+        <Button Content="{Binding RecentUser.Naam}"
+                IsVisible="{Binding RecentUser, Converter={StaticResource IsNotNullConverter}}"
+                Command="{Binding SelectUserCommand}"
+                CommandParameter="{Binding RecentUser}"
+                HorizontalContentAlignment="Left"/>
+
+        <!-- Selected user display -->
+        <TextBlock Text="{Binding SelectedUser.Naam, StringFormat='Selected user: {0}'}"
+                   Margin="0,15,0,0"
+                   FontStyle="Italic"
+                   IsVisible="{Binding SelectedUser, Converter={StaticResource IsNotNullConverter}}"/>
 
     </StackPanel>
 </Window>

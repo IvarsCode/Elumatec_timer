@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "U0eUigHVjzU=",
+  "dgSpecHash": "HIffOIomUz8=",
   "success": true,
   "projectFilePath": "C:\\Users\\ivarh\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj",
   "expectedPackageFiles": [
@@ -12,6 +12,7 @@
     "C:\\Users\\ivarh\\.nuget\\packages\\avalonia.native\\11.3.11\\avalonia.native.11.3.11.nupkg.sha512",
     "C:\\Users\\ivarh\\.nuget\\packages\\avalonia.remote.protocol\\11.3.11\\avalonia.remote.protocol.11.3.11.nupkg.sha512",
     "C:\\Users\\ivarh\\.nuget\\packages\\avalonia.skia\\11.3.11\\avalonia.skia.11.3.11.nupkg.sha512",
+    "C:\\Users\\ivarh\\.nuget\\packages\\avalonia.themes.fluent\\11.3.11\\avalonia.themes.fluent.11.3.11.nupkg.sha512",
     "C:\\Users\\ivarh\\.nuget\\packages\\avalonia.win32\\11.3.11\\avalonia.win32.11.3.11.nupkg.sha512",
     "C:\\Users\\ivarh\\.nuget\\packages\\avalonia.x11\\11.3.11\\avalonia.x11.11.3.11.nupkg.sha512",
     "C:\\Users\\ivarh\\.nuget\\packages\\harfbuzzsharp\\8.3.1.1\\harfbuzzsharp.8.3.1.1.nupkg.sha512",

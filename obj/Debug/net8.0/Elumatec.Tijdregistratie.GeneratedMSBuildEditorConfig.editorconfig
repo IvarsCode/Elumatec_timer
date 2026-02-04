@@ -19,8 +19,8 @@ build_property.ProjectDir = C:\Users\ivarh\OneDrive\Documenten\GitHub\Elumatec_t
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/App.axaml]
+[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/MainWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/MainWindow.axaml]
+[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/TijdregistratieApp.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
