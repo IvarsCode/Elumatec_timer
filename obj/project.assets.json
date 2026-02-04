@@ -201,6 +201,22 @@
           }
         }
       },
+      "Avalonia.Themes.Fluent/11.3.11": {
+        "type": "package",
+        "dependencies": {
+          "Avalonia": "11.3.11"
+        },
+        "compile": {
+          "lib/net8.0/Avalonia.Themes.Fluent.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Themes.Fluent.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Avalonia.Win32/11.3.11": {
         "type": "package",
         "dependencies": {
@@ -1749,6 +1765,24 @@
         "lib/net8.0/Avalonia.Skia.xml",
         "lib/netstandard2.0/Avalonia.Skia.dll",
         "lib/netstandard2.0/Avalonia.Skia.xml"
+      ]
+    },
+    "Avalonia.Themes.Fluent/11.3.11": {
+      "sha512": "GBLwgTwLPGaWxtbBdZ+kUn+QIKVorTc3m8v3nr0wsvRJkWHPgrDR5LAoHJjkPQCLDFuqocYFIeLOUAaBYP0MeA==",
+      "type": "package",
+      "path": "avalonia.themes.fluent/11.3.11",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "avalonia.themes.fluent.11.3.11.nupkg.sha512",
+        "avalonia.themes.fluent.nuspec",
+        "lib/net6.0/Avalonia.Themes.Fluent.dll",
+        "lib/net6.0/Avalonia.Themes.Fluent.xml",
+        "lib/net8.0/Avalonia.Themes.Fluent.dll",
+        "lib/net8.0/Avalonia.Themes.Fluent.xml",
+        "lib/netstandard2.0/Avalonia.Themes.Fluent.dll",
+        "lib/netstandard2.0/Avalonia.Themes.Fluent.xml"
       ]
     },
     "Avalonia.Win32/11.3.11": {
@@ -3565,6 +3599,7 @@
     "net8.0": [
       "Avalonia >= 11.*",
       "Avalonia.Desktop >= 11.*",
+      "Avalonia.Themes.Fluent >= 11.3.11",
       "Microsoft.EntityFrameworkCore.Design >= 8.*",
       "Microsoft.EntityFrameworkCore.Sqlite >= 8.*"
     ]
@@ -3626,6 +3661,10 @@
           "Avalonia.Desktop": {
             "target": "Package",
             "version": "[11.*, )"
+          },
+          "Avalonia.Themes.Fluent": {
+            "target": "Package",
+            "version": "[11.3.11, )"
           },
           "Microsoft.EntityFrameworkCore.Design": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",

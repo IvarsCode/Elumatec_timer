@@ -10,6 +10,7 @@
         "dependencies": {
           "Avalonia": "11.3.11",
           "Avalonia.Desktop": "11.3.11",
+          "Avalonia.Themes.Fluent": "11.3.11",
           "Microsoft.EntityFrameworkCore.Design": "8.0.23",
           "Microsoft.EntityFrameworkCore.Sqlite": "8.0.23"
         },
@@ -155,6 +156,17 @@
         },
         "runtime": {
           "lib/net8.0/Avalonia.Skia.dll": {
+            "assemblyVersion": "11.3.11.0",
+            "fileVersion": "11.3.11.0"
+          }
+        }
+      },
+      "Avalonia.Themes.Fluent/11.3.11": {
+        "dependencies": {
+          "Avalonia": "11.3.11"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Themes.Fluent.dll": {
             "assemblyVersion": "11.3.11.0",
             "fileVersion": "11.3.11.0"
           }
@@ -1107,6 +1119,13 @@
       "sha512": "sha512-7XynAFWmUR0pEXj6dY8ezpFkeMpNTGNvz1Vf2kLKQawJiv1MKdxzbehDXG9v4A0l2oBLd5m92Dme1/EKH7oj5g==",
       "path": "avalonia.skia/11.3.11",
       "hashPath": "avalonia.skia.11.3.11.nupkg.sha512"
+    },
+    "Avalonia.Themes.Fluent/11.3.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GBLwgTwLPGaWxtbBdZ+kUn+QIKVorTc3m8v3nr0wsvRJkWHPgrDR5LAoHJjkPQCLDFuqocYFIeLOUAaBYP0MeA==",
+      "path": "avalonia.themes.fluent/11.3.11",
+      "hashPath": "avalonia.themes.fluent.11.3.11.nupkg.sha512"
     },
     "Avalonia.Win32/11.3.11": {
       "type": "package",
