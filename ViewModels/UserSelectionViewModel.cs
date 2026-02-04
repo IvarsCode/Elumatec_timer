@@ -10,7 +10,8 @@ namespace Elumatec.Tijdregistratie.ViewModels
 {
     public class UserSelectionViewModel : INotifyPropertyChanged
     {
-        // Observable collection bound to ItemsControl in XAML
+        private readonly AppDbContext _db;
+
         public ObservableCollection<Medewerker> FilteredUsers { get; } = new();
 
         private string _searchText = string.Empty;
@@ -19,10 +20,10 @@ namespace Elumatec.Tijdregistratie.ViewModels
             get => _searchText;
             set
             {
-                if (value == _searchText) return;
+                if (_searchText == value) return;
                 _searchText = value;
                 OnPropertyChanged();
-                FilterUsers(); // search database whenever text changes
+                FilterUsers();
             }
         }
 
@@ -32,10 +33,14 @@ namespace Elumatec.Tijdregistratie.ViewModels
             get => _selectedUser;
             set
             {
+                if (_selectedUser == value) return;
                 _selectedUser = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(HasSelectedUser));
             }
         }
+
+        public bool HasSelectedUser => SelectedUser != null;
 
         private Medewerker? _recentUser;
         public Medewerker? RecentUser
@@ -43,22 +48,27 @@ namespace Elumatec.Tijdregistratie.ViewModels
             get => _recentUser;
             set
             {
+                if (_recentUser == value) return;
                 _recentUser = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(HasRecentUser));
             }
         }
 
+        public bool HasRecentUser => RecentUser != null;
+
         public ICommand SelectUserCommand { get; }
 
-        public UserSelectionViewModel()
+        public UserSelectionViewModel(AppDbContext db)
         {
-            // Command that will be executed when user clicks a result button
+            _db = db;
+
             SelectUserCommand = new RelayCommand<Medewerker?>(SelectUser);
 
-            // Optional: load recent user from settings here if needed
+            // 🔹 LOAD recent user from AppState
+            RecentUser = MedewerkerRepository.GetRecentUser(_db);
         }
 
-        // Filters users using the MedewerkerRepository.Search method (partial match)
         private void FilterUsers()
         {
             FilteredUsers.Clear();
@@ -66,9 +76,19 @@ namespace Elumatec.Tijdregistratie.ViewModels
             if (string.IsNullOrWhiteSpace(SearchText))
                 return;
 
-            var results = MedewerkerRepository.Search(SearchText);
-            foreach (var user in results)
-                FilteredUsers.Add(user);
+            try
+            {
+                // 🔹 Use repository Search method (top 4 matches)
+                var results = MedewerkerRepository.Search(_db, SearchText);
+
+                foreach (var user in results)
+                    FilteredUsers.Add(user);
+            }
+            catch (Exception ex)
+            {
+                // Optional: log for debugging
+                Console.WriteLine($"[FilterUsers] Exception: {ex}");
+            }
         }
 
         private void SelectUser(Medewerker? user)
@@ -78,7 +98,8 @@ namespace Elumatec.Tijdregistratie.ViewModels
             SelectedUser = user;
             RecentUser = user;
 
-            // Optional: persist RecentUser in settings or database
+            // 🔹 SAVE recent user to AppState
+            MedewerkerRepository.SaveRecentUser(_db, user.Id);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

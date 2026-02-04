@@ -1,70 +1,79 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using Microsoft.Data.Sqlite;
+using System.Linq;
 using Elumatec.Tijdregistratie.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Elumatec.Tijdregistratie.Data
 {
     public static class MedewerkerRepository
     {
-        // Path to the SQLite database in the app folder
-        private static string DbPath => Path.Combine(AppContext.BaseDirectory, "elumatec.db");
+        private const string RecentUserKey = "RecentMedewerkerId";
 
-        // Get all users from the database
-        public static List<Medewerker> GetAll()
+        // 🔹 Get recent user from AppState safely
+        public static Medewerker? GetRecentUser(AppDbContext db)
         {
-            var medewerkers = new List<Medewerker>();
-
-            // If the database doesn't exist yet, return empty list
-            if (!File.Exists(DbPath))
-                return medewerkers;
-
-            using var connection = new SqliteConnection($"Data Source={DbPath}");
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = "SELECT Id, Naam FROM medewerkers ORDER BY Naam";
-
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            try
             {
-                medewerkers.Add(new Medewerker
-                {
-                    Id = reader.GetInt32(0),
-                    Naam = reader.GetString(1)
-                });
-            }
+                var state = db.Set<AppState>()
+                    .FirstOrDefault(s => s.Key == RecentUserKey);
 
-            return medewerkers;
+                if (state == null)
+                    return null;
+
+                if (!int.TryParse(state.Value, out var medewerkerId))
+                    return null;
+
+                return db.Medewerkers.FirstOrDefault(m => m.Id == medewerkerId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetRecentUser] Exception: {ex}");
+                return null;
+            }
         }
 
-        // Optional: Get filtered users by search term (partial match)
-        public static List<Medewerker> Search(string searchTerm)
+        // 🔹 Save recent user to AppState
+        public static void SaveRecentUser(AppDbContext db, int medewerkerId)
         {
-            var medewerkers = new List<Medewerker>();
-
-            if (!File.Exists(DbPath) || string.IsNullOrWhiteSpace(searchTerm))
-                return medewerkers;
-
-            using var connection = new SqliteConnection($"Data Source={DbPath}");
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = "SELECT Id, Naam FROM medewerkers WHERE Naam LIKE $search ORDER BY Naam";
-            command.Parameters.AddWithValue("$search", $"%{searchTerm}%");
-
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            try
             {
-                medewerkers.Add(new Medewerker
-                {
-                    Id = reader.GetInt32(0),
-                    Naam = reader.GetString(1)
-                });
-            }
+                var state = db.Set<AppState>()
+                    .FirstOrDefault(s => s.Key == RecentUserKey);
 
-            return medewerkers;
+                if (state == null)
+                {
+                    state = new AppState
+                    {
+                        Key = RecentUserKey,
+                        Value = medewerkerId.ToString()
+                    };
+                    db.Add(state);
+                }
+                else
+                {
+                    state.Value = medewerkerId.ToString();
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SaveRecentUser] Exception: {ex}");
+            }
+        }
+
+        // 🔹 Search method: returns max 4 best matches
+        public static List<Medewerker> Search(AppDbContext db, string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return new List<Medewerker>();
+
+            return db.Medewerkers
+                .Where(m => EF.Functions.Like(m.Naam, $"%{searchTerm}%"))
+                .OrderBy(m => m.Naam)
+                .Take(4) // Only return the first 4 matches
+                .ToList();
         }
     }
 }

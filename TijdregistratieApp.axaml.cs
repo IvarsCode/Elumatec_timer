@@ -1,6 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Elumatec.Tijdregistratie.Data;
+using Elumatec.Tijdregistratie.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.IO;
 
 namespace Elumatec.Tijdregistratie
 {
@@ -13,25 +18,29 @@ namespace Elumatec.Tijdregistratie
 
         public override void OnFrameworkInitializationCompleted()
         {
-            try
-            {
-                File.AppendAllText(Path.Combine(Environment.CurrentDirectory, "startup.log"), $"[{DateTime.Now:O}] OnFrameworkInitializationCompleted start\n");
-            }
-            catch { }
-
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var window = new TijdregistratieWindow();
-                // assign a simple viewmodel so MainWindow.xaml bindings work without additional services
-                window.DataContext = new Elumatec.Tijdregistratie.ViewModels.UserSelectionViewModel();
-                window.Opened += (_, __) => File.AppendAllText(Path.Combine(Environment.CurrentDirectory, "startup.log"), $"[{DateTime.Now:O}] MainWindow Opened\n");
-                window.Closed += (_, __) => File.AppendAllText(Path.Combine(Environment.CurrentDirectory, "startup.log"), $"[{DateTime.Now:O}] MainWindow Closed\n");
+                // 🔹 SQLite database path
+                var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "elumatec.db");
+
+                // 🔹 EF Core options
+                var options = new DbContextOptionsBuilder<AppDbContext>()
+                    .UseSqlite($"Data Source={dbPath}")
+                    .Options;
+
+                // 🔹 Create DbContext
+                var dbContext = new AppDbContext(options);
+
+                // 🔹 Create window + ViewModel
+                var window = new TijdregistratieWindow
+                {
+                    DataContext = new UserSelectionViewModel(dbContext)
+                };
+
                 desktop.MainWindow = window;
-                try { File.AppendAllText(Path.Combine(Environment.CurrentDirectory, "startup.log"), $"[{DateTime.Now:O}] MainWindow assigned\n"); } catch { }
             }
 
             base.OnFrameworkInitializationCompleted();
-            try { File.AppendAllText(Path.Combine(Environment.CurrentDirectory, "startup.log"), $"[{DateTime.Now:O}] OnFrameworkInitializationCompleted end\n"); } catch { }
         }
     }
 }

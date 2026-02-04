@@ -1,25 +1,20 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:Elumatec.Tijdregistratie.ViewModels"
-        xmlns:conv="clr-namespace:Elumatec.Tijdregistratie.Converters"
+        xmlns:vm="clr-namespace:Elumatec.Tijdregistratie.ViewModels;assembly=Elumatec.Tijdregistratie"
         x:Class="Elumatec.Tijdregistratie.TijdregistratieWindow"
         Width="750"
         Height="500"
         Title="Elumatec">
 
-    <Window.DataContext>
-        <vm:UserSelectionViewModel/>
-    </Window.DataContext>
 
-    <Window.Resources>
-        <conv:IsNotNullConverter x:Key="IsNotNullConverter"/>
-    </Window.Resources>
+
+
 
     <StackPanel Spacing="12"
-                Margin="20"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Width="400">
+            Width="400"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Margin="0,200,0,0">
 
         <!-- Title -->
         <TextBlock Text="Naam werknemer:"
@@ -47,10 +42,10 @@
         <TextBlock Text="Meest recente gebruiker"
                    Margin="0,10,0,0"
                    FontWeight="SemiBold"
-                   IsVisible="{Binding RecentUser, Converter={StaticResource IsNotNullConverter}}"/>
+                   IsVisible="{Binding HasRecentUser}"/>
         
         <Button Content="{Binding RecentUser.Naam}"
-                IsVisible="{Binding RecentUser, Converter={StaticResource IsNotNullConverter}}"
+                IsVisible="{Binding HasRecentUser}"
                 Command="{Binding SelectUserCommand}"
                 CommandParameter="{Binding RecentUser}"
                 HorizontalContentAlignment="Left"/>
@@ -59,7 +54,7 @@
         <TextBlock Text="{Binding SelectedUser.Naam, StringFormat='Selected user: {0}'}"
                    Margin="0,15,0,0"
                    FontStyle="Italic"
-                   IsVisible="{Binding SelectedUser, Converter={StaticResource IsNotNullConverter}}"/>
+                   IsVisible="{Binding HasSelectedUser}"/>
 
     </StackPanel>
 </Window>
