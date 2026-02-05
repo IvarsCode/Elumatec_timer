@@ -5,36 +5,108 @@
     <Grid RowDefinitions="Auto,*"
           Margin="20">
 
-        <!-- Top bar -->
+        <!-- Top bar (always visible) -->
         <Grid ColumnDefinitions="Auto,*,Auto,Auto"
               VerticalAlignment="Top">
 
-            <!-- Nieuwe interventie -->
             <Button Content="Nieuwe interventie"
                     FontSize="18"
                     Padding="20,12"
                     HorizontalAlignment="Left"
                     Command="{Binding NieuweInterventieCommand}" />
 
-            <!-- Spacer -->
             <Border Grid.Column="1" />
 
-            <!-- Gebruiker text -->
             <TextBlock Grid.Column="2"
                        VerticalAlignment="Center"
                        Margin="0,0,12,0"
                        FontWeight="SemiBold"
                        Text="{Binding GebruikerNaam}" />
 
-            <!-- Back button -->
             <Button Grid.Column="3"
                     Content="Terug"
                     Padding="14,8"
                     Command="{Binding TerugCommand}" />
         </Grid>
 
-        <!-- Main content (later) -->
-        <Border Grid.Row="1"
-                Margin="0,20,0,0" />
+        <!-- Scrollable interventies -->
+        <ScrollViewer Grid.Row="1"
+                      Margin="0,20,0,0"
+                      VerticalScrollBarVisibility="Auto">
+
+            <ItemsControl ItemsSource="{Binding Interventies}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+
+                        <Border Margin="0,0,0,12"
+                                Padding="14"
+                                CornerRadius="6"
+                                BorderThickness="1"
+                                BorderBrush="Gray">
+
+                            <Button Background="Transparent"
+                                    BorderThickness="0"
+                                    HorizontalContentAlignment="Stretch"
+                                    MinWidth="750"
+                                    Command="{Binding DataContext.OpenInterventieCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+
+                                <Grid ColumnDefinitions="2*,3*"
+                                      ColumnSpacing="20">
+
+                                    <!-- LEFT: main info -->
+                                    <StackPanel>
+
+                                        <!-- Machine name -->
+                                        <TextBlock Text="{Binding Machine}"
+                                                   FontSize="20"
+                                                   FontWeight="Bold" />
+
+                                        <!-- Company -->
+                                        <TextBlock Text="{Binding Bedrijfsnaam}"
+                                                   Opacity="0.7"
+                                                   Margin="0,2,0,6" />
+
+                                        <TextBlock Text="{Binding DatumRecentsteCall, StringFormat='Laatste call: {0:dd-MM-yyyy HH:mm}'}"
+                                                   FontSize="12"
+                                                   Opacity="0.6" />
+
+                                        <TextBlock Text="{Binding AantalCalls, StringFormat='Aantal calls: {0}'}"
+                                                   FontSize="12"
+                                                   Opacity="0.6" />
+                                    </StackPanel>
+
+                                    <!-- RIGHT: notes -->
+                                    <StackPanel Grid.Column="1"
+                                                Spacing="8">
+
+                                        <StackPanel>
+                                            <TextBlock Text="Interne notities"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="13" />
+                                            <TextBlock Text="{Binding InterneNotities}"
+                                                       TextWrapping="Wrap"
+                                                       Opacity="0.8" />
+                                        </StackPanel>
+
+                                        <StackPanel>
+                                            <TextBlock Text="Externe notities"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="13" />
+                                            <TextBlock Text="{Binding ExterneNotities}"
+                                                       TextWrapping="Wrap"
+                                                       Opacity="0.8" />
+                                        </StackPanel>
+
+                                    </StackPanel>
+                                </Grid>
+                            </Button>
+                        </Border>
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </ScrollViewer>
     </Grid>
 </UserControl>
