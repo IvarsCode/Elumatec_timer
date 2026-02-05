@@ -6,6 +6,7 @@ using Elumatec.Tijdregistratie.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
+using Elumatec.Tijdregistratie.Views;
 
 namespace Elumatec.Tijdregistratie
 {
@@ -31,10 +32,13 @@ namespace Elumatec.Tijdregistratie
                 // 🔹 Create DbContext
                 var dbContext = new AppDbContext(options);
 
-                // 🔹 Create window + ViewModel
+                // 🔹 Create MainViewModel
+                var mainViewModel = new MainViewModel(dbContext);
+
+                // 🔹 Create window and assign MainViewModel as DataContext
                 var window = new TijdregistratieWindow
                 {
-                    DataContext = new UserSelectionViewModel(dbContext)
+                    DataContext = mainViewModel
                 };
 
                 desktop.MainWindow = window;

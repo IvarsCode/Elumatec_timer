@@ -1,0 +1,25 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Elumatec.Tijdregistratie.ViewModels;assembly=Elumatec.Tijdregistratie"
+        xmlns:views="clr-namespace:Elumatec.Tijdregistratie.Views;assembly=Elumatec.Tijdregistratie"
+        x:Class="Elumatec.Tijdregistratie.Views.TijdregistratieWindow"
+        Width="750"
+        Height="500"
+        Title="Elumatec">
+
+    <Window.DataTemplates>
+        <!-- Map UserSelectionViewModel to UserSelectionView -->
+        <DataTemplate DataType="vm:UserSelectionViewModel">
+            <views:UserSelectionView />
+        </DataTemplate>
+
+        <!-- Map InterventieOverviewViewModel to InterventieOverviewView -->
+        <DataTemplate DataType="vm:InterventieOverviewViewModel">
+            <views:InterventieOverview />
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <!-- ContentControl hosts the CurrentView -->
+    <ContentControl Content="{Binding CurrentView}" />
+
+</Window>
