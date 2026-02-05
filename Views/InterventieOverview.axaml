@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Elumatec.Tijdregistratie.Views.InterventieOverview">
+
+    <Grid RowDefinitions="Auto,*"
+          Margin="20">
+
+        <!-- Top bar -->
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto"
+              VerticalAlignment="Top">
+
+            <!-- Nieuwe interventie -->
+            <Button Content="Nieuwe interventie"
+                    FontSize="18"
+                    Padding="20,12"
+                    HorizontalAlignment="Left"
+                    Command="{Binding NieuweInterventieCommand}" />
+
+            <!-- Spacer -->
+            <Border Grid.Column="1" />
+
+            <!-- Gebruiker text -->
+            <TextBlock Grid.Column="2"
+                       VerticalAlignment="Center"
+                       Margin="0,0,12,0"
+                       FontWeight="SemiBold"
+                       Text="{Binding GebruikerNaam}" />
+
+            <!-- Back button -->
+            <Button Grid.Column="3"
+                    Content="Terug"
+                    Padding="14,8"
+                    Command="{Binding TerugCommand}" />
+        </Grid>
+
+        <!-- Main content (later) -->
+        <Border Grid.Row="1"
+                Margin="0,20,0,0" />
+    </Grid>
+</UserControl>

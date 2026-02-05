@@ -11,6 +11,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
     public class UserSelectionViewModel : INotifyPropertyChanged
     {
         private readonly AppDbContext _db;
+        private readonly MainViewModel _main;
 
         public ObservableCollection<Medewerker> FilteredUsers { get; } = new();
 
@@ -59,13 +60,15 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
         public ICommand SelectUserCommand { get; }
 
-        public UserSelectionViewModel(AppDbContext db)
+        public UserSelectionViewModel(AppDbContext db, MainViewModel main)
         {
             _db = db;
+            _main = main;
 
+            // Command to select a user
             SelectUserCommand = new RelayCommand<Medewerker?>(SelectUser);
 
-            // 🔹 LOAD recent user from AppState
+            // Load recent user from AppState
             RecentUser = MedewerkerRepository.GetRecentUser(_db);
         }
 
@@ -78,7 +81,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             try
             {
-                // 🔹 Use repository Search method (top 4 matches)
+                // Get top 4 matches using repository
                 var results = MedewerkerRepository.Search(_db, SearchText);
 
                 foreach (var user in results)
@@ -86,7 +89,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
             }
             catch (Exception ex)
             {
-                // Optional: log for debugging
                 Console.WriteLine($"[FilterUsers] Exception: {ex}");
             }
         }
@@ -98,8 +100,11 @@ namespace Elumatec.Tijdregistratie.ViewModels
             SelectedUser = user;
             RecentUser = user;
 
-            // 🔹 SAVE recent user to AppState
+            // Save recent user in AppState
             MedewerkerRepository.SaveRecentUser(_db, user.Id);
+
+            // Notify MainViewModel to switch to InterventieOverview
+            _main.UserSelected(user);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

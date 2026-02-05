@@ -22,5 +22,11 @@ build_property.EnableGeneratedComInterfaceComImportInterop =
 [C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/TijdregistratieApp.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/UserSelection.axaml]
+[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/InterventieOverview.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/TijdregistratieWindow.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/UserSelection.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

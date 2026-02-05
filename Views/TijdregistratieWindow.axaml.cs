@@ -2,8 +2,9 @@ using Avalonia.Controls;
 using Elumatec.Tijdregistratie.Data;
 using Elumatec.Tijdregistratie.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 
-namespace Elumatec.Tijdregistratie
+namespace Elumatec.Tijdregistratie.Views
 {
     public partial class TijdregistratieWindow : Window
     {
@@ -11,16 +12,17 @@ namespace Elumatec.Tijdregistratie
         {
             InitializeComponent();
 
-            // Create DbContext options
+            // 🔹 Create DbContext options
+            var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "elumatec.db");
             var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseSqlite("Data Source=elumatec.db")
+                .UseSqlite($"Data Source={dbPath}")
                 .Options;
 
-            // Create DbContext
+            // 🔹 Create DbContext
             var dbContext = new AppDbContext(options);
 
-            // Assign ViewModel
-            DataContext = new UserSelectionViewModel(dbContext);
+            // 🔹 Assign MainViewModel as DataContext for navigation
+            DataContext = new MainViewModel(dbContext);
         }
     }
 }
