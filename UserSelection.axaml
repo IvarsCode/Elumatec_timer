@@ -14,7 +14,7 @@
             Width="400"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
-            Margin="0,200,0,0">
+            Margin="0,100,0,0">
 
         <!-- Title -->
         <TextBlock Text="Naam werknemer:"
