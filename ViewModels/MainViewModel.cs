@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Elumatec.Tijdregistratie.Data;
@@ -27,9 +28,9 @@ namespace Elumatec.Tijdregistratie.ViewModels
             ShowUserSelection();
         }
 
+
         public void ShowUserSelection()
         {
-            // Pass "this" so UserSelectionViewModel can call UserSelected()
             CurrentView = new UserSelectionViewModel(Db, this);
         }
 
@@ -41,7 +42,29 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
         public void ShowInterventieOverview()
         {
-            CurrentView = new InterventieOverviewViewModel(this);
+            if (CurrentUser == null)
+                throw new InvalidOperationException("No current user set.");
+
+            var overviewVM = new InterventieOverviewViewModel(Db, CurrentUser);
+
+            overviewVM.TerugRequested = ShowUserSelection;
+            overviewVM.NieuweInterventieRequested = () => ShowInterventieForm(null);
+            overviewVM.OpenInterventieRequested = interventie =>
+                ShowInterventieForm(interventie);
+
+            CurrentView = overviewVM;
+        }
+
+        public void ShowInterventieForm(Interventie? interventie)
+        {
+            if (CurrentUser == null)
+                throw new InvalidOperationException("No current user set.");
+
+            var formVM = new InterventieFormViewModel(Db, CurrentUser, interventie);
+
+            formVM.CloseRequested = ShowInterventieOverview;
+
+            CurrentView = formVM;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -9,39 +10,36 @@ namespace Elumatec.Tijdregistratie.ViewModels
 {
     public class InterventieOverviewViewModel : INotifyPropertyChanged
     {
-        private readonly MainViewModel _main;
+        private readonly AppDbContext _db;
+        private readonly Medewerker _currentUser;
 
-        public Medewerker? CurrentUser => _main.CurrentUser;
+        public string GebruikerNaam => _currentUser.Naam;
 
-        public string GebruikerNaam =>
-            CurrentUser != null ? CurrentUser.Naam : "Onbekend";
+        public ObservableCollection<InterventieItemViewModel> Interventies { get; }
+            = new ObservableCollection<InterventieItemViewModel>();
 
-        public ObservableCollection<Interventie> Interventies { get; }
-            = new ObservableCollection<Interventie>();
-
+        // Commands
         public ICommand TerugCommand { get; }
         public ICommand NieuweInterventieCommand { get; }
         public ICommand OpenInterventieCommand { get; }
 
-        public InterventieOverviewViewModel(MainViewModel main)
+        // Navigation callbacks (set by MainViewModel)
+        public Action? TerugRequested { get; set; }
+        public Action? NieuweInterventieRequested { get; set; }
+        public Action<Interventie>? OpenInterventieRequested { get; set; }
+
+        public InterventieOverviewViewModel(AppDbContext db, Medewerker currentUser)
         {
-            _main = main;
+            _db = db;
+            _currentUser = currentUser;
 
-            TerugCommand = new RelayCommand(() =>
-                _main.ShowUserSelection());
-
-            // Ready for later implementation
-            NieuweInterventieCommand = new RelayCommand(() =>
+            // Commands trigger the callbacks
+            TerugCommand = new RelayCommand(() => TerugRequested?.Invoke());
+            NieuweInterventieCommand = new RelayCommand(() => NieuweInterventieRequested?.Invoke());
+            OpenInterventieCommand = new RelayCommand<InterventieItemViewModel>(item =>
             {
-                // _main.ShowNieuweInterventie(); 
-            });
-
-            OpenInterventieCommand = new RelayCommand<Interventie>(interventie =>
-            {
-                if (interventie == null)
-                    return;
-
-                // _main.ShowInterventieDetail(interventie); (future)
+                if (item != null)
+                    OpenInterventieRequested?.Invoke(item.Interventie);
             });
 
             LoadInterventies();
@@ -51,13 +49,103 @@ namespace Elumatec.Tijdregistratie.ViewModels
         {
             Interventies.Clear();
 
-            var interventies = InterventieRepository.GetAll(_main.Db);
-            foreach (var interventie in interventies)
-                Interventies.Add(interventie);
+            var result = InterventieRepository.GetFiltered(
+                _db,
+                SelectedFilter,
+                SearchText,
+                FromDate,
+                ToDate);
+
+            foreach (var interventie in result)
+                Interventies.Add(new InterventieItemViewModel(interventie));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        // Filter options
+        public Array FilterTypes => Enum.GetValues(typeof(InterventieFilterType));
+
+        private InterventieFilterType _selectedFilter = InterventieFilterType.Bedrijfsnaam;
+        public InterventieFilterType SelectedFilter
+        {
+            get => _selectedFilter;
+            set
+            {
+                _selectedFilter = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsTextSearch));
+                OnPropertyChanged(nameof(IsDateSearch));
+                LoadInterventies();
+            }
+        }
+
+        private string? _searchText;
+        public string? SearchText
+        {
+            get => _searchText;
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                LoadInterventies();
+            }
+        }
+
+        private DateTimeOffset? _fromDate;
+        public DateTimeOffset? FromDate
+        {
+            get => _fromDate;
+            set
+            {
+                _fromDate = value;
+                OnPropertyChanged();
+                LoadInterventies();
+            }
+        }
+
+        private DateTimeOffset? _toDate;
+        public DateTimeOffset? ToDate
+        {
+            get => _toDate;
+            set
+            {
+                _toDate = value;
+                OnPropertyChanged();
+                LoadInterventies();
+            }
+        }
+
+        public bool IsTextSearch =>
+            SelectedFilter == InterventieFilterType.Bedrijfsnaam ||
+            SelectedFilter == InterventieFilterType.Machine;
+
+        public bool IsDateSearch =>
+            SelectedFilter == InterventieFilterType.Datum;
+    }
+
+    public class InterventieItemViewModel
+    {
+        public Interventie Interventie { get; }
+
+        public InterventieItemViewModel(Interventie interventie)
+        {
+            Interventie = interventie;
+        }
+
+        public string Machine => Interventie.Machine;
+        public string Bedrijfsnaam => Interventie.Bedrijfsnaam;
+        public DateTime DatumRecentsteCall => Interventie.DatumRecentsteCall ?? DateTime.MinValue;
+        public int AantalCalls => Interventie.AantalCalls;
+
+        public string InterneNotitiesKort => Trim(Interventie.InterneNotities);
+        public string ExterneNotitiesKort => Trim(Interventie.ExterneNotities);
+
+        private static string Trim(string? text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+            return text.Length <= 80 ? text : text.Substring(0, 80) + "...";
+        }
     }
 }

@@ -3,7 +3,7 @@
         xmlns:vm="clr-namespace:Elumatec.Tijdregistratie.ViewModels;assembly=Elumatec.Tijdregistratie"
         xmlns:views="clr-namespace:Elumatec.Tijdregistratie.Views;assembly=Elumatec.Tijdregistratie"
         x:Class="Elumatec.Tijdregistratie.Views.TijdregistratieWindow"
-        Width="750"
+        Width="950"
         Height="500"
         Title="Elumatec">
 
@@ -13,9 +13,14 @@
             <views:UserSelectionView />
         </DataTemplate>
 
-        <!-- Map InterventieOverviewViewModel to InterventieOverviewView -->
+        <!-- Map InterventieOverviewViewModel to InterventieOverview -->
         <DataTemplate DataType="vm:InterventieOverviewViewModel">
             <views:InterventieOverview />
+        </DataTemplate>
+
+        <!-- Map InterventieFormViewModel to InterventieFormView -->
+        <DataTemplate DataType="vm:InterventieFormViewModel">
+            <views:InterventieForm />
         </DataTemplate>
     </Window.DataTemplates>
 

@@ -2,34 +2,68 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Elumatec.Tijdregistratie.Views.InterventieOverview">
 
-    <Grid RowDefinitions="Auto,*"
-          Margin="20">
+    <Grid RowDefinitions="Auto,*" Margin="10">
 
-        <!-- Top bar (always visible) -->
-        <Grid ColumnDefinitions="Auto,*,Auto,Auto"
-              VerticalAlignment="Top">
+        <!-- ==================== Top controls row ==================== -->
+        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+              Grid.Row="0"
+              VerticalAlignment="Top"
+              ColumnSpacing="10">
 
+            <!-- New interventie button -->
             <Button Content="Nieuwe interventie"
                     FontSize="18"
                     Padding="20,12"
-                    HorizontalAlignment="Left"
                     Command="{Binding NieuweInterventieCommand}" />
+            <!-- Comment: plain button, no styles -->
 
-            <Border Grid.Column="1" />
+            <!-- Filter label + dropdown -->
+            <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2">
+                <TextBlock Text="Filter" FontSize="12" Opacity="0.7" />
+                <ComboBox Width="160"
+                          ItemsSource="{Binding FilterTypes}"
+                          SelectedItem="{Binding SelectedFilter}" />
+            </StackPanel>
 
-            <TextBlock Grid.Column="2"
-                       VerticalAlignment="Center"
-                       Margin="0,0,12,0"
-                       FontWeight="SemiBold"
-                       Text="{Binding GebruikerNaam}" />
+            <!-- Text search -->
+            <TextBox Grid.Column="2"
+                     Watermark="Zoeken..."
+                     Text="{Binding SearchText, Mode=TwoWay}"
+                     IsVisible="{Binding IsTextSearch}" />
 
-            <Button Grid.Column="3"
-                    Content="Terug"
-                    Padding="14,8"
-                    Command="{Binding TerugCommand}" />
+            <!-- Date search: vertical stack with From/To labels -->
+            <StackPanel Grid.Column="2"
+                        Orientation="Vertical"
+                        Spacing="4"
+                        IsVisible="{Binding IsDateSearch}">
+
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock VerticalAlignment="Center" Text="Van:" />
+                    <DatePicker SelectedDate="{Binding FromDate}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock VerticalAlignment="Center" Text="Tot: " />
+                    <DatePicker SelectedDate="{Binding ToDate}" />
+                </StackPanel>
+
+            </StackPanel>
+
+            <!-- User button -->
+            <StackPanel Grid.Column="4" Orientation="Vertical" Spacing="6">
+                <Button Command="{Binding TerugCommand}"
+                        Background="#F0F0F0"
+                        BorderBrush="Gray"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="6"
+                        HorizontalAlignment="Center">
+                    <TextBlock FontWeight="SemiBold"
+                               Text="{Binding GebruikerNaam, StringFormat=Gebruiker: {0}}" />
+                </Button>
+            </StackPanel>
         </Grid>
 
-        <!-- Scrollable interventies -->
         <ScrollViewer Grid.Row="1"
                       Margin="0,20,0,0"
                       VerticalScrollBarVisibility="Auto">
@@ -38,69 +72,46 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
 
+                        <!-- Outer border around each interventie -->
                         <Border Margin="0,0,0,12"
                                 Padding="14"
                                 CornerRadius="6"
                                 BorderThickness="1"
-                                BorderBrush="Gray">
-
+                                BorderBrush="Gray"
+                                MinWidth="900">
+                            
                             <Button Background="Transparent"
                                     BorderThickness="0"
                                     HorizontalContentAlignment="Stretch"
-                                    MinWidth="750"
-                                    Command="{Binding DataContext.OpenInterventieCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    MinWidth="900" 
+                                    Height="120"
+                                    Command="{Binding DataContext.OpenInterventieCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}">
-
-                                <Grid ColumnDefinitions="2*,3*"
-                                      ColumnSpacing="20">
-
+                                
+                                <Grid ColumnDefinitions="2*,3*" ColumnSpacing="20">
                                     <!-- LEFT: main info -->
-                                    <StackPanel>
-
-                                        <!-- Machine name -->
-                                        <TextBlock Text="{Binding Machine}"
-                                                   FontSize="20"
-                                                   FontWeight="Bold" />
-
-                                        <!-- Company -->
-                                        <TextBlock Text="{Binding Bedrijfsnaam}"
-                                                   Opacity="0.7"
-                                                   Margin="0,2,0,6" />
-
-                                        <TextBlock Text="{Binding DatumRecentsteCall, StringFormat='Laatste call: {0:dd-MM-yyyy HH:mm}'}"
-                                                   FontSize="12"
-                                                   Opacity="0.6" />
-
-                                        <TextBlock Text="{Binding AantalCalls, StringFormat='Aantal calls: {0}'}"
-                                                   FontSize="12"
-                                                   Opacity="0.6" />
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Machine}" FontSize="20" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding Bedrijfsnaam}" Opacity="0.7" Margin="0,2,0,6"/>
+                                        <TextBlock Text="{Binding DatumRecentsteCall, StringFormat='Laatste call: {0:dd-MM-yyyy HH:mm}'}" FontSize="12" Opacity="0.6"/>
+                                        <TextBlock Text="{Binding AantalCalls, StringFormat='Aantal calls: {0}'}" FontSize="12" Opacity="0.6"/>
                                     </StackPanel>
 
                                     <!-- RIGHT: notes -->
-                                    <StackPanel Grid.Column="1"
-                                                Spacing="8">
-
+                                    <StackPanel Grid.Column="1" Spacing="8" MinWidth="400" VerticalAlignment="Center">
                                         <StackPanel>
-                                            <TextBlock Text="Interne notities"
-                                                       FontWeight="SemiBold"
-                                                       FontSize="13" />
-                                            <TextBlock Text="{Binding InterneNotities}"
-                                                       TextWrapping="Wrap"
-                                                       Opacity="0.8" />
+                                            <TextBlock Text="Interne notities" FontWeight="SemiBold" FontSize="13"/>
+                                            <TextBlock Text="{Binding InterneNotitiesKort}" TextWrapping="Wrap" Opacity="0.8" MaxHeight="50"/>
                                         </StackPanel>
-
                                         <StackPanel>
-                                            <TextBlock Text="Externe notities"
-                                                       FontWeight="SemiBold"
-                                                       FontSize="13" />
-                                            <TextBlock Text="{Binding ExterneNotities}"
-                                                       TextWrapping="Wrap"
-                                                       Opacity="0.8" />
+                                            <TextBlock Text="Externe notities" FontWeight="SemiBold" FontSize="13"/>
+                                            <TextBlock Text="{Binding ExterneNotitiesKort}" TextWrapping="Wrap" Opacity="0.8" MaxHeight="50"/>
                                         </StackPanel>
-
                                     </StackPanel>
                                 </Grid>
                             </Button>
+                            <!-- End of clickable interventie -->
                         </Border>
 
                     </DataTemplate>
@@ -108,5 +119,6 @@
             </ItemsControl>
 
         </ScrollViewer>
+
     </Grid>
 </UserControl>

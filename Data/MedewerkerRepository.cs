@@ -10,7 +10,7 @@ namespace Elumatec.Tijdregistratie.Data
     {
         private const string RecentUserKey = "RecentMedewerkerId";
 
-        // 🔹 Get recent user from AppState safely
+        // Get recent user from AppState 
         public static Medewerker? GetRecentUser(AppDbContext db)
         {
             try
@@ -33,7 +33,7 @@ namespace Elumatec.Tijdregistratie.Data
             }
         }
 
-        // 🔹 Save recent user to AppState
+        // Save recent user to AppState
         public static void SaveRecentUser(AppDbContext db, int medewerkerId)
         {
             try
@@ -63,7 +63,7 @@ namespace Elumatec.Tijdregistratie.Data
             }
         }
 
-        // 🔹 Search method: returns max 4 best matches
+        // Search method: returns max 4 best matches
         public static List<Medewerker> Search(AppDbContext db, string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
@@ -72,7 +72,7 @@ namespace Elumatec.Tijdregistratie.Data
             return db.Medewerkers
                 .Where(m => EF.Functions.Like(m.Naam, $"%{searchTerm}%"))
                 .OrderBy(m => m.Naam)
-                .Take(4) // Only return the first 4 matches
+                .Take(4)
                 .ToList();
         }
     }
