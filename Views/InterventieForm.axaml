@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="https://github.com/avaloniaui/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             x:Class="Elumatec.Tijdregistratie.Views.InterventieForm"
+             mc:Ignorable="d"
+             d:DesignWidth="1000"
+             d:DesignHeight="600">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top right: timer + username -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Right"
+                    Margin="0,0,0,10">
+            <TextBlock Text="{Binding TimerDisplay}"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Right"/>
+            <TextBlock Text="{Binding Username}"
+                       FontSize="14"
+                       Opacity="0.7"
+                       HorizontalAlignment="Right"/>
+        </StackPanel>
+
+        <!-- Main content -->
+        <Grid Grid.Row="1"
+              ColumnDefinitions="3*,5*"
+              ColumnSpacing="20">
+
+            <!-- LEFT -->
+            <StackPanel Grid.Column="0" Spacing="10">
+
+                <StackPanel>
+                    <TextBlock Text="Bedrijfsnaam" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding Bedrijfsnaam}"
+                             IsReadOnly="{Binding IsPrefilled}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Machine" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding Machine}"
+                             IsReadOnly="{Binding IsPrefilled}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Contactpersoon Naam" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding ContactpersoonNaam}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Contactpersoon Email" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding ContactpersoonEmail}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Contactpersoon Telefoon" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding ContactpersoonTelefoon}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Datum laatste call" FontWeight="SemiBold"/>
+                    <DatePicker SelectedDate="{Binding DatumLaatsteCall}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Aantal calls" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding AantalCalls}"
+                             IsReadOnly="{Binding IsPrefilled}"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Totale looptijd tot heden" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TimerDisplay}"
+                               FontSize="16"/>
+                </StackPanel>
+
+            </StackPanel>
+
+            <!-- RIGHT -->
+            <StackPanel Grid.Column="1" Spacing="20">
+
+                <StackPanel>
+                    <TextBlock Text="Interne notities" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding InterneNotities}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Height="150"/>
+                </StackPanel>
+
+                <StackPanel>
+                    <TextBlock Text="Externe notities" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding ExterneNotities}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             Height="150"/>
+                </StackPanel>
+
+            </StackPanel>
+
+        </Grid>
+
+        <!-- Bottom right buttons -->
+        <StackPanel Grid.Row="2"
+                    HorizontalAlignment="Right"
+                    Spacing="8">
+
+            <!-- Messages row -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="15">
+
+                <!-- Warning message -->
+                <TextBlock Text="{Binding StatusMessage}"
+                        HorizontalAlignment="Right"
+                        Foreground="{Binding StatusForeground}"/>
+
+                <!-- PDF message -->
+                <TextBlock Text="PDF gedownload"
+                        IsVisible="{Binding PdfDownloaded}"
+                        Foreground="Green"
+                        VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Buttons row -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="10">
+
+                <Button Content="Tijdelijk stoppen"
+                        Command="{Binding StopAndSaveCommand}"/>
+
+                <Button Content="Download PDF"
+                        Command="{Binding DownloadPdfCommand}"/>
+
+            </StackPanel>
+
+        </StackPanel>
+
+    </Grid>
+</UserControl>

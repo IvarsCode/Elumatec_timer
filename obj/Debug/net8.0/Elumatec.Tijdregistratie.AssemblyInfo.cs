@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Elumatec.Tijdregistratie")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+369af3d95047b1e71923ab1ae0bd5198015da8e6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0b3d188c2132cfec658d79295b05e081fdf954ca")]
 [assembly: System.Reflection.AssemblyProductAttribute("Elumatec.Tijdregistratie")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Elumatec.Tijdregistratie")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
