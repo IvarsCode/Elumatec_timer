@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -7,6 +8,7 @@ using Avalonia.Threading;
 using Avalonia.Media;
 using Elumatec.Tijdregistratie.Data;
 using Elumatec.Tijdregistratie.Models;
+using Elumatec.Tijdregistratie.Pdf;
 
 namespace Elumatec.Tijdregistratie.ViewModels
 {
@@ -190,7 +192,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             _timer.Start();
 
             StopAndSaveCommand = new RelayCommand(StopAndSave);
-            DownloadPdfCommand = new RelayCommand(async () => await DownloadPdfAsync());
+            DownloadPdfCommand = new AsyncRelayCommand(DownloadPdfAsync);
         }
 
         private void StopAndSave()
@@ -337,10 +339,28 @@ namespace Elumatec.Tijdregistratie.ViewModels
         private async Task DownloadPdfAsync()
         {
             _timer.Stop();
-            PdfDownloaded = true;
 
-            await Task.Delay(1500);
-            CloseRequested?.Invoke();
+            try
+            {
+                // Generate PDF using the current database context
+                var pdfPath = Path.Combine(Environment.CurrentDirectory, "Interventies.pdf");
+
+                InterventiesPdfExporter.ExportFromDb(_db, pdfPath);
+
+                PdfDownloaded = true;
+                StatusMessage = $"PDF succesvol gegenereerd: {Path.GetFileName(pdfPath)}";
+
+                await Task.Delay(1500);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"PDF generatie fout: {ex.Message}";
+                await Task.Delay(2500);
+            }
+            finally
+            {
+                CloseRequested?.Invoke();
+            }
         }
 
 
