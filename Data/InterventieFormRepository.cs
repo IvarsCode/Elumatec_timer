@@ -1,86 +1,118 @@
 using System;
 using System.Linq;
 using Elumatec.Tijdregistratie.Models;
+using Elumatec.Tijdregistratie.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 
 namespace Elumatec.Tijdregistratie.Data
 {
     public static class InterventieFormRepository
     {
+        /// <summary>
+        /// Saves or updates an Interventie and creates a new InterventieCall record
+        /// </summary>
         public static void Save(
             AppDbContext db,
             Interventie? existing,
             string bedrijfsnaam,
             string machine,
-            DateTimeOffset datumLaatsteCall,
-            int aantalCalls,
-            int totaleLooptijdInSeconden,
-            string interneNotities,
-            string externeNotities,
-            int contactpersoonId,
-            string cpNaam,
-            string cpEmail,
-            string cpTelefoon)
+            int klantId,
+            int medewerkerId,
+            string contactpersoonNaam,
+            string? contactpersoonEmail,
+            string? contactpersoonTelefoon,
+            string? interneNotities,
+            string? externeNotities,
+            DateTime? callStartTime,
+            DateTime? callEndTime)
         {
-            // If contactpersoonId is -1, create a new Contactpersoon
-            if (contactpersoonId == -1)
+            var helpers = new AppStateHelpers(db);
+
+            int callDurationSeconds = 0;
+            if (callStartTime.HasValue && callEndTime.HasValue)
             {
-                var newCP = new Contactpersoon
-                {
-                    Naam = cpNaam,
-                    Email = cpEmail,
-                    TelefoonNummer = cpTelefoon
-                };
-                db.Contactpersonen.Add(newCP);
-                db.SaveChanges();
-                contactpersoonId = newCP.Id;
-            }
-
-            // Get the recent MedewerkerId from AppState
-
-            var state = db.Set<AppState>().FirstOrDefault(s => s.Key == "RecentMedewerkerId");
-
-            int interneMedewerkerId = 0; // default fallback
-            if (state != null && int.TryParse(state.Value, out var medewerkerId))
-            {
-                interneMedewerkerId = medewerkerId;
+                callDurationSeconds = (int)(callEndTime.Value - callStartTime.Value).TotalSeconds;
             }
 
             if (existing != null)
             {
-                // Update existing
-                existing.DatumRecentsteCall = datumLaatsteCall.DateTime;
-                existing.AantalCalls = aantalCalls;
-                existing.TotaleLooptijd = totaleLooptijdInSeconden;
-                existing.InterneNotities = interneNotities;
-                existing.ExterneNotities = externeNotities;
-                existing.ContactpersoonId = contactpersoonId;
+                // Re-fetch the interventie to ensure it's being tracked
+                var interventie = db.Interventies.FirstOrDefault(i => i.Id == existing.Id);
 
-                // Keep existing InterneMedewerkerId if already set
-                if (existing.InterneMedewerkerId == 0)
-                    existing.InterneMedewerkerId = interneMedewerkerId;
+                if (interventie == null)
+                {
+                    throw new Exception($"Interventie with ID {existing.Id} not found");
+                }
 
-                db.Interventies.Update(existing);
+                // Update existing interventie
+                interventie.Machine = machine;
+                interventie.BedrijfNaam = bedrijfsnaam;
+                interventie.KlantId = klantId;
+
+                // Create new call record for this session
+                var newCall = new InterventieCall
+                {
+                    Id = helpers.GetNextPrefixedId("interventie_call"),
+                    InterventieId = interventie.Id,
+                    MedewerkerId = medewerkerId,
+                    ContactpersoonNaam = contactpersoonNaam,
+                    ContactpersoonEmail = contactpersoonEmail,
+                    ContactpersoonTelefoonNummer = contactpersoonTelefoon,
+                    InterneNotities = interneNotities,
+                    ExterneNotities = externeNotities,
+                    StartCall = callStartTime,
+                    EindCall = callEndTime
+                };
+
+                db.InterventieCalls.Add(newCall);
+                db.SaveChanges();
+
+                // Update interventie totals
+                interventie.TotaleLooptijd += callDurationSeconds;
+                interventie.IdRecentsteCall = newCall.Id;
+
+                db.SaveChanges();
             }
             else
             {
-                // Create new Interventie
-                var interventie = new Interventie
+                // Create new interventie
+                var newInterventie = new Interventie
                 {
-                    Bedrijfsnaam = bedrijfsnaam,
+                    Id = helpers.GetNextPrefixedId("interventies"),
                     Machine = machine,
-                    InterneMedewerkerId = interneMedewerkerId,
-                    DatumRecentsteCall = datumLaatsteCall.DateTime,
-                    AantalCalls = aantalCalls,
-                    TotaleLooptijd = totaleLooptijdInSeconden,
-                    InterneNotities = interneNotities,
-                    ExterneNotities = externeNotities,
-                    ContactpersoonId = contactpersoonId
+                    BedrijfNaam = bedrijfsnaam,
+                    KlantId = klantId,
+                    TotaleLooptijd = callDurationSeconds,
+                    Afgerond = 0,
+                    IdRecentsteCall = 0 // Will be updated after call is created
                 };
 
-                db.Interventies.Add(interventie);
-            }
+                db.Interventies.Add(newInterventie);
+                db.SaveChanges();
 
-            db.SaveChanges();
+                // Create first call for this interventie
+                var newCall = new InterventieCall
+                {
+                    Id = helpers.GetNextPrefixedId("interventie_call"),
+                    InterventieId = newInterventie.Id,
+                    MedewerkerId = medewerkerId,
+                    ContactpersoonNaam = contactpersoonNaam,
+                    ContactpersoonEmail = contactpersoonEmail,
+                    ContactpersoonTelefoonNummer = contactpersoonTelefoon,
+                    InterneNotities = interneNotities,
+                    ExterneNotities = externeNotities,
+                    StartCall = callStartTime,
+                    EindCall = callEndTime
+                };
+
+                db.InterventieCalls.Add(newCall);
+                db.SaveChanges();
+
+                // Update with the new call ID
+                newInterventie.IdRecentsteCall = newCall.Id;
+                db.SaveChanges();
+            }
         }
     }
 }

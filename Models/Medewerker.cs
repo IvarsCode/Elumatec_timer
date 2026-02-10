@@ -4,7 +4,6 @@ namespace Elumatec.Tijdregistratie.Models;
 
 public class Medewerker
 {
-    [Key]
     public int Id { get; set; }
 
     [Required]

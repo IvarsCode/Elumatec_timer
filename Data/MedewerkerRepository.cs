@@ -21,8 +21,7 @@ namespace Elumatec.Tijdregistratie.Data
                 if (state == null)
                     return null;
 
-                if (!int.TryParse(state.Value, out var medewerkerId))
-                    return null;
+                var medewerkerId = state.Value;
 
                 return db.Medewerkers.FirstOrDefault(m => m.Id == medewerkerId);
             }
@@ -39,20 +38,20 @@ namespace Elumatec.Tijdregistratie.Data
             try
             {
                 var state = db.Set<AppState>()
-                    .FirstOrDefault(s => s.Key == RecentUserKey);
+    .FirstOrDefault(s => s.Key == RecentUserKey);
 
                 if (state == null)
                 {
                     state = new AppState
                     {
                         Key = RecentUserKey,
-                        Value = medewerkerId.ToString()
+                        Value = medewerkerId
                     };
                     db.Add(state);
                 }
                 else
                 {
-                    state.Value = medewerkerId.ToString();
+                    state.Value = medewerkerId;
                 }
 
                 db.SaveChanges();

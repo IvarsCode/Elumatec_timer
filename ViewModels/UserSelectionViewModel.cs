@@ -12,6 +12,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
     {
         private readonly AppDbContext _db;
         private readonly MainViewModel _main;
+        private readonly AppStateHelpers _helpers;
 
         public ObservableCollection<Medewerker> FilteredUsers { get; } = new();
 
@@ -70,6 +71,8 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             // Load recent user from AppState
             RecentUser = MedewerkerRepository.GetRecentUser(_db);
+            _helpers = new AppStateHelpers(_db);
+            _helpers.EnsureUniekeTellingExists();
         }
 
         private void FilterUsers()

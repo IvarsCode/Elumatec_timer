@@ -14,20 +14,60 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Top right: timer + username -->
-        <StackPanel Grid.Row="0"
-                    Orientation="Vertical"
-                    HorizontalAlignment="Right"
-                    Margin="0,0,0,10">
-            <TextBlock Text="{Binding TimerDisplay}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Right"/>
-            <TextBlock Text="{Binding Username}"
-                       FontSize="14"
-                       Opacity="0.7"
-                       HorizontalAlignment="Right"/>
-        </StackPanel>
+        <!-- Top row: messages (center) + timer + username (right) -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Warning/Status Messages at Center -->
+            <StackPanel Grid.Column="0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="10">
+                
+                <!-- Warning message -->
+                <Border Background="#FFEBEE"
+                        BorderBrush="#F44336"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#C62828"
+                               TextWrapping="Wrap"
+                               MaxWidth="400"
+                               TextAlignment="Center"/>
+                </Border>
+
+                <!-- PDF downloaded message -->
+                <Border Background="#E8F5E9"
+                        BorderBrush="#4CAF50"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        IsVisible="{Binding PdfDownloaded}">
+                    <TextBlock Text="PDF gedownload"
+                               Foreground="#2E7D32"
+                               TextAlignment="Center"/>
+                </Border>
+            </StackPanel>
+
+            <!-- Timer + username (right) -->
+            <StackPanel Grid.Column="1"
+                        Orientation="Vertical"
+                        HorizontalAlignment="Right">
+                <TextBlock Text="{Binding TimerDisplay}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Right"/>
+                <TextBlock Text="{Binding Username}"
+                           FontSize="14"
+                           Opacity="0.7"
+                           HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Grid>
 
         <!-- Main content -->
         <Grid Grid.Row="1"
@@ -38,15 +78,48 @@
             <StackPanel Grid.Column="0" Spacing="10">
 
                 <StackPanel>
-                    <TextBlock Text="Bedrijfsnaam" FontWeight="SemiBold"/>
-                    <TextBox Text="{Binding Bedrijfsnaam}"
-                             IsReadOnly="{Binding IsPrefilled}"/>
+                    <TextBlock Text="Bedrijf" FontWeight="SemiBold"/>
+    
+                    <!-- AutoCompleteBox for searching bedrijven (only for new interventies) -->
+                    <AutoCompleteBox 
+                        ItemsSource="{Binding BedrijvenSuggestions}"
+                        SelectedItem="{Binding SelectedBedrijf}"
+                        FilterMode="Contains"
+                        Watermark="Zoek bedrijf..."
+                        IsVisible="{Binding !IsPrefilled}"
+                        MinimumPrefixLength="1"
+                        ValueMemberBinding="{Binding BedrijfNaam}">
+                        <AutoCompleteBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding BedrijfNaam}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Stad}" FontSize="11" Opacity="0.6"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </AutoCompleteBox.ItemTemplate>
+                    </AutoCompleteBox>
+                    
+                    <!-- Show selected bedrijf name when prefilled (read-only for existing interventies) -->
+                    <TextBlock Text="{Binding Bedrijfsnaam}"
+                               IsVisible="{Binding IsPrefilled}"
+                               Padding="8"
+                               Background="#F5F5F5"
+                               FontSize="14"/>
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="Machine" FontWeight="SemiBold"/>
+                    
+                    <!-- TextBox for new interventies -->
                     <TextBox Text="{Binding Machine}"
-                             IsReadOnly="{Binding IsPrefilled}"/>
+                             IsVisible="{Binding !IsPrefilled}"/>
+                    
+                    <!-- Read-only display for existing interventies -->
+                    <TextBlock Text="{Binding Machine}"
+                               IsVisible="{Binding IsPrefilled}"
+                               Padding="8"
+                               Background="#F5F5F5"
+                               FontSize="14"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -65,20 +138,11 @@
                 </StackPanel>
 
                 <StackPanel>
-                    <TextBlock Text="Datum laatste call" FontWeight="SemiBold"/>
-                    <DatePicker SelectedDate="{Binding DatumLaatsteCall}"/>
-                </StackPanel>
-
-                <StackPanel>
-                    <TextBlock Text="Aantal calls" FontWeight="SemiBold"/>
-                    <TextBox Text="{Binding AantalCalls}"
-                             IsReadOnly="{Binding IsPrefilled}"/>
-                </StackPanel>
-
-                <StackPanel>
-                    <TextBlock Text="Totale looptijd tot heden" FontWeight="SemiBold"/>
-                    <TextBlock Text="{Binding TimerDisplay}"
-                               FontSize="16"/>
+                    <TextBlock Text="Totale looptijd" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TotalTimeDisplay}"
+                            FontSize="16"
+                            Padding="8"
+                            Background="#F5F5F5"/>
                 </StackPanel>
 
             </StackPanel>
@@ -91,7 +155,7 @@
                     <TextBox Text="{Binding InterneNotities}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
-                             Height="150"/>
+                             Height="200"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -99,7 +163,7 @@
                     <TextBox Text="{Binding ExterneNotities}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
-                             Height="150"/>
+                             Height="200"/>
                 </StackPanel>
 
             </StackPanel>
@@ -111,37 +175,20 @@
                     HorizontalAlignment="Right"
                     Spacing="8">
 
-            <!-- Messages row -->
-            <StackPanel Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Spacing="15">
-
-                <!-- Warning message -->
-                <TextBlock Text="{Binding StatusMessage}"
-                        HorizontalAlignment="Right"
-                        Foreground="{Binding StatusForeground}"/>
-
-                <!-- PDF message -->
-                <TextBlock Text="PDF gedownload"
-                        IsVisible="{Binding PdfDownloaded}"
-                        Foreground="Green"
-                        VerticalAlignment="Center"/>
-            </StackPanel>
-
             <!-- Buttons row -->
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="10">
+                        Spacing="10"
+                        VerticalAlignment="Bottom">
 
                 <Button Content="Tijdelijk stoppen"
                         Command="{Binding StopAndSaveCommand}"/>
 
-                <Button Content="Download PDF"
+                <Button Content="Afronden &amp; PDF maken"
                         Command="{Binding DownloadPdfCommand}"/>
 
             </StackPanel>
 
         </StackPanel>
-
     </Grid>
 </UserControl>
