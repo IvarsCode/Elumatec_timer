@@ -51,6 +51,24 @@ namespace Elumatec.Tijdregistratie.ViewModels
             }
         }
 
+        // public List<Machine> MachineSuggestions { get; }
+
+        // Selected machine from search
+        // public Machine? SelectedMachine
+        // {
+        //     get => _selectedMachine;
+        //     set
+        //     {
+        //         _selectedMachine = value;
+        //         if (value != null)
+        //         {
+        //             Machine = value.Machine;
+        //         }
+        //         OnPropertyChanged();
+        //         UpdateStatusAfterWarning();
+        //     }
+        // }
+
         private bool _importantWarningActive = false;
         private bool _nonImportantWarningActive = false;
 

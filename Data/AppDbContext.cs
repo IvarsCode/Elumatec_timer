@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Interventie> Interventies { get; set; } = null!;
     public DbSet<InterventieCall> InterventieCalls { get; set; } = null!;
     public DbSet<AppState> AppState { get; set; } = null!;
+    public DbSet<Machine> Machines { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,15 +20,19 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Bedrijf>().ToTable("bedrijven");
         modelBuilder.Entity<Interventie>().ToTable("interventies");
         modelBuilder.Entity<InterventieCall>().ToTable("interventie_call");
+        modelBuilder.Entity<Machine>().ToTable("Machines");
 
         modelBuilder.Entity<AppState>()
             .ToTable("app_state")
             .HasKey(x => x.Key);
 
         // Id behavior
+        modelBuilder.Entity<Machine>()
+            .HasKey(e => e.MachineNaam);
+
         modelBuilder.Entity<Bedrijf>()
             .Property(b => b.Id)
-            .ValueGeneratedOnAdd(); // still auto-incremented
+            .ValueGeneratedOnAdd();
 
         modelBuilder.Entity<Interventie>()
             .Property(i => i.Id)
@@ -39,7 +44,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Medewerker>()
             .Property(m => m.Id)
-            .ValueGeneratedOnAdd(); // still auto-incremented
+            .ValueGeneratedOnAdd();
 
         // Configure DateTime columns for SQLite (stored as TEXT)
         modelBuilder.Entity<InterventieCall>()

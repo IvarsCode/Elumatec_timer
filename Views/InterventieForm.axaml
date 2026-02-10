@@ -107,6 +107,36 @@
                                FontSize="14"/>
                 </StackPanel>
 
+                <!-- <StackPanel>
+                    <TextBlock Text="Machine" FontWeight="SemiBold"/> -->
+    
+                    <!-- AutoCompleteBox for searching Machines (only for new interventies) -->
+                    <!-- <AutoCompleteBox 
+                        ItemsSource="{Binding MachineSuggestions}"
+                        SelectedItem="{Binding SelectedMachine}"
+                        FilterMode="Contains"
+                        Watermark="Zoek machine..."
+                        IsVisible="{Binding !IsPrefilled}"
+                        MinimumPrefixLength="1"
+                        ValueMemberBinding="{Binding Machine}">
+                        <AutoCompleteBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Machine}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Stad}" FontSize="11" Opacity="0.6"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </AutoCompleteBox.ItemTemplate>
+                    </AutoCompleteBox> -->
+                    
+                    <!-- Show selected bedrijf name when prefilled (read-only for existing interventies) -->
+                    <!-- <TextBlock Text="{Binding Bedrijfsnaam}"
+                               IsVisible="{Binding IsPrefilled}"
+                               Padding="8"
+                               Background="#F5F5F5"
+                               FontSize="14"/>
+                </StackPanel> -->
+
                 <StackPanel>
                     <TextBlock Text="Machine" FontWeight="SemiBold"/>
                     
