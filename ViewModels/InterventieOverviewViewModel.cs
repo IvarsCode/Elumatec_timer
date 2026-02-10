@@ -2,7 +2,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
 using Elumatec.Tijdregistratie.Data;
 using Elumatec.Tijdregistratie.Models;
 
@@ -135,12 +137,44 @@ namespace Elumatec.Tijdregistratie.ViewModels
         }
 
         public string Machine => Interventie.Machine;
-        public string Bedrijfsnaam => Interventie.Bedrijfsnaam;
-        public DateTime DatumRecentsteCall => Interventie.DatumRecentsteCall ?? DateTime.MinValue;
-        public int AantalCalls => Interventie.AantalCalls;
+        public string Bedrijfsnaam => Interventie.BedrijfNaam;
 
-        public string InterneNotitiesKort => Trim(Interventie.InterneNotities);
-        public string ExterneNotitiesKort => Trim(Interventie.ExterneNotities);
+        public DateTime DatumRecentsteCall
+        {
+            get
+            {
+                var mostRecentCall = Interventie.Calls
+                    .Where(c => c.StartCall.HasValue)
+                    .OrderByDescending(c => c.StartCall)
+                    .FirstOrDefault();
+
+                return mostRecentCall?.StartCall ?? DateTime.MinValue;
+            }
+        }
+
+        public int AantalCalls => Interventie.Calls?.Count ?? 0;
+
+        public string InterneNotitiesKort
+        {
+            get
+            {
+                var mostRecentCall = Interventie.Calls?
+                    .OrderByDescending(c => c.Id)
+                    .FirstOrDefault();
+                return Trim(mostRecentCall?.InterneNotities);
+            }
+        }
+
+        public string ExterneNotitiesKort
+        {
+            get
+            {
+                var mostRecentCall = Interventie.Calls?
+                    .OrderByDescending(c => c.Id)
+                    .FirstOrDefault();
+                return Trim(mostRecentCall?.ExterneNotities);
+            }
+        }
 
         private static string Trim(string? text)
         {

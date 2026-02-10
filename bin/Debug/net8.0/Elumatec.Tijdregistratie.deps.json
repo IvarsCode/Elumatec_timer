@@ -9,7 +9,9 @@
       "Elumatec.Tijdregistratie/1.0.0": {
         "dependencies": {
           "Avalonia": "11.3.11",
+          "Avalonia.Controls.DataGrid": "11.3.11",
           "Avalonia.Desktop": "11.3.11",
+          "Avalonia.Diagnostics": "11.3.11",
           "Avalonia.Themes.Fluent": "11.3.11",
           "Microsoft.EntityFrameworkCore.Design": "8.0.23",
           "Microsoft.EntityFrameworkCore.Sqlite": "8.0.23"
@@ -91,6 +93,29 @@
         }
       },
       "Avalonia.BuildServices/11.3.2": {},
+      "Avalonia.Controls.ColorPicker/11.3.11": {
+        "dependencies": {
+          "Avalonia": "11.3.11",
+          "Avalonia.Remote.Protocol": "11.3.11"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Controls.ColorPicker.dll": {
+            "assemblyVersion": "11.3.11.0",
+            "fileVersion": "11.3.11.0"
+          }
+        }
+      },
+      "Avalonia.Controls.DataGrid/11.3.11": {
+        "dependencies": {
+          "Avalonia": "11.3.11"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Controls.DataGrid.dll": {
+            "assemblyVersion": "11.3.11.0",
+            "fileVersion": "11.3.11.0"
+          }
+        }
+      },
       "Avalonia.Desktop/11.3.11": {
         "dependencies": {
           "Avalonia": "11.3.11",
@@ -101,6 +126,19 @@
         },
         "runtime": {
           "lib/net8.0/Avalonia.Desktop.dll": {
+            "assemblyVersion": "11.3.11.0",
+            "fileVersion": "11.3.11.0"
+          }
+        }
+      },
+      "Avalonia.Diagnostics/11.3.11": {
+        "dependencies": {
+          "Avalonia": "11.3.11",
+          "Avalonia.Controls.ColorPicker": "11.3.11",
+          "Avalonia.Themes.Simple": "11.3.11"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Diagnostics.dll": {
             "assemblyVersion": "11.3.11.0",
             "fileVersion": "11.3.11.0"
           }
@@ -167,6 +205,17 @@
         },
         "runtime": {
           "lib/net8.0/Avalonia.Themes.Fluent.dll": {
+            "assemblyVersion": "11.3.11.0",
+            "fileVersion": "11.3.11.0"
+          }
+        }
+      },
+      "Avalonia.Themes.Simple/11.3.11": {
+        "dependencies": {
+          "Avalonia": "11.3.11"
+        },
+        "runtime": {
+          "lib/net8.0/Avalonia.Themes.Simple.dll": {
             "assemblyVersion": "11.3.11.0",
             "fileVersion": "11.3.11.0"
           }
@@ -1085,12 +1134,33 @@
       "path": "avalonia.buildservices/11.3.2",
       "hashPath": "avalonia.buildservices.11.3.2.nupkg.sha512"
     },
+    "Avalonia.Controls.ColorPicker/11.3.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-2i5dvZcizAtumywPRravU0/0lLsa8F+n3cTyt2ZpXAwnqnE+eeuozl9Q23YnE69BpROC5wXYrjogXhWcUPks4g==",
+      "path": "avalonia.controls.colorpicker/11.3.11",
+      "hashPath": "avalonia.controls.colorpicker.11.3.11.nupkg.sha512"
+    },
+    "Avalonia.Controls.DataGrid/11.3.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-uC+LDVQeKmyXgHyX3t8FktkOOb77v9WIO+CPJq6/DwGiUt6PUq+ac/6was8syEzyP4VIx3qOfgTZdIT3bdAuSQ==",
+      "path": "avalonia.controls.datagrid/11.3.11",
+      "hashPath": "avalonia.controls.datagrid.11.3.11.nupkg.sha512"
+    },
     "Avalonia.Desktop/11.3.11": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-m60U1jV96RquwYGg4Pzwp0ENL1HUrM3YZLMCes0gWRn8x+webT9V4Wfs58MAdTOukXPpy9t1XhEd4NON674Wmw==",
       "path": "avalonia.desktop/11.3.11",
       "hashPath": "avalonia.desktop.11.3.11.nupkg.sha512"
+    },
+    "Avalonia.Diagnostics/11.3.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-gqKcPTGRZG/ocet5vOmQrIpf+gQU4mOS3mVwIisSv1GAKA/+JmNcnp5ouaKikLbdGt7Qcw2ZKl+daMws9y6/mg==",
+      "path": "avalonia.diagnostics/11.3.11",
+      "hashPath": "avalonia.diagnostics.11.3.11.nupkg.sha512"
     },
     "Avalonia.FreeDesktop/11.3.11": {
       "type": "package",
@@ -1126,6 +1196,13 @@
       "sha512": "sha512-GBLwgTwLPGaWxtbBdZ+kUn+QIKVorTc3m8v3nr0wsvRJkWHPgrDR5LAoHJjkPQCLDFuqocYFIeLOUAaBYP0MeA==",
       "path": "avalonia.themes.fluent/11.3.11",
       "hashPath": "avalonia.themes.fluent.11.3.11.nupkg.sha512"
+    },
+    "Avalonia.Themes.Simple/11.3.11": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vrCD6Kz4nm4dKA7j3s7nTLxdlsQ+ru7iv45FDwRfys0QhrKK4deq40RxUgfREGvFfCNMD2b9EEerieU3uFSTkw==",
+      "path": "avalonia.themes.simple/11.3.11",
+      "hashPath": "avalonia.themes.simple.11.3.11.nupkg.sha512"
     },
     "Avalonia.Win32/11.3.11": {
       "type": "package",

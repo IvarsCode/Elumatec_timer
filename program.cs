@@ -1,76 +1,111 @@
 using Avalonia;
 using System;
 using System.IO;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Elumatec.Tijdregistratie.Data;
 
-namespace Elumatec.Tijdregistratie;
-
-internal sealed class Program
+namespace Elumatec.Tijdregistratie
 {
-    [STAThread]
-    public static void Main(string[] args)
+    internal class Program
     {
-        // tiny file logger to help diagnose headless startup issues
-        void Log(string message)
+        [STAThread]
+        public static void Main(string[] args)
         {
+            var dbPath = Path.Combine(Environment.CurrentDirectory, "elumatec.db");
+            Console.WriteLine($"=== DATABASE INITIALIZATION ===");
+            Console.WriteLine($"Database path: {dbPath}");
+            Console.WriteLine($"Database exists: {File.Exists(dbPath)}");
+
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseSqlite($"Data Source={dbPath}")
+                .EnableSensitiveDataLogging()
+                .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information)
+                .Options;
+
             try
             {
-                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Elumatec");
-                Directory.CreateDirectory(folder);
-                var p = Path.Combine(folder, "startup.log");
-                File.AppendAllText(p, $"[{DateTime.Now:O}] {message}\n");
+                using (var db = new AppDbContext(options))
+                {
+                    Console.WriteLine("\n=== RUNNING MIGRATIONS ===");
+                    db.Database.Migrate();
+                    Console.WriteLine("Migrations completed successfully.");
+
+                    Console.WriteLine("\n=== LOADING CSV DATA ===");
+                    BedrijvenLaden.LoadBedrijvenCsvToDb(db);
+                    Console.WriteLine("CSV load completed successfully.");
+                }
+
+                Console.WriteLine("\n=== DATABASE INITIALIZATION COMPLETE ===\n");
             }
-            catch { }
-        }
-
-        Log($"Before DB migration (basedir={AppContext.BaseDirectory})");
-
-        // ensure database exists and apply migrations
-        var dbPath = Path.Combine(Environment.CurrentDirectory, "elumatec.db");
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseSqlite($"Data Source={dbPath}")
-            .Options;
-
-        using (var db = new AppDbContext(options))
-        {
-            // Will apply migrations if present; otherwise create DB
-            db.Database.Migrate();
-        }
-
-        Log("After DB migration");
-
-        try
-        {
-            Log("Before attach exception handlers"); AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            catch (Exception ex)
             {
-                Console.Error.WriteLine($"Unhandled exception: {e.ExceptionObject}");
-            };
+                Console.WriteLine("\n=== ERROR OCCURRED ===");
+                Console.WriteLine($"Error Type: {ex.GetType().Name}");
+                Console.WriteLine($"Message: {ex.Message}");
+                Console.WriteLine($"\nStack Trace:\n{ex.StackTrace}");
 
-            System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (s, e) =>
-            {
-                Console.Error.WriteLine($"Unobserved task exception: {e.Exception}");
-            };
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"\n=== INNER EXCEPTION ===");
+                    Console.WriteLine($"Type: {ex.InnerException.GetType().Name}");
+                    Console.WriteLine($"Message: {ex.InnerException.Message}");
+                    Console.WriteLine($"Stack Trace:\n{ex.InnerException.StackTrace}");
+                }
 
-            // Forward Trace output to console for Avalonia logs
-            System.Diagnostics.Trace.AutoFlush = true;
-            if (System.Diagnostics.Trace.Listeners.Count == 0 || !(System.Diagnostics.Trace.Listeners[0] is System.Diagnostics.ConsoleTraceListener))
-            {
-                System.Diagnostics.Trace.Listeners.Add(new System.Diagnostics.ConsoleTraceListener());
+                Console.WriteLine("\n=== Press any key to exit ===");
+                Console.ReadKey();
+                Environment.Exit(1);
             }
 
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+            Console.WriteLine("Starting Avalonia UI...");
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Startup exception: {ex}");
-            throw;
-        }
+
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure<TijdregistratieApp>()
+                         .UsePlatformDetect()
+                         .LogToTrace();
     }
-
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<TijdregistratieApp>()
-            .UsePlatformDetect()
-            .LogToTrace();
 }
+
+// using Avalonia;
+// using System;
+// using System.IO;
+// using Microsoft.EntityFrameworkCore;
+// using Elumatec.Tijdregistratie.Data;
+
+// namespace Elumatec.Tijdregistratie
+// {
+//     internal class Program
+//     {
+//         [STAThread]
+//         public static void Main(string[] args)
+//         {
+
+
+//             var dbPath = Path.Combine(Environment.CurrentDirectory, "elumatec.db");
+//             var options = new DbContextOptionsBuilder<AppDbContext>()
+//                 .UseSqlite($"Data Source={dbPath}")
+//                 .Options;
+
+//             using (var db = new AppDbContext(options))
+//             {
+//                 // Will apply migrations if present; otherwise create DB
+//                 db.Database.Migrate();
+
+//                 // ONLY do this when heving an updated bedrijven.csv in data, if so delete the other so there is only 1
+//                 BedrijvenLaden.LoadBedrijvenCsvToDb(db);
+//             }
+
+//             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+
+//         }
+
+//         public static AppBuilder BuildAvaloniaApp()
+//             => AppBuilder.Configure<TijdregistratieApp>()
+//                          .UsePlatformDetect()
+//                          .LogToTrace();
+
+//     }
+// }

@@ -21,21 +21,16 @@ namespace Elumatec.Tijdregistratie
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // 🔹 SQLite database path
                 var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "elumatec.db");
 
-                // 🔹 EF Core options
                 var options = new DbContextOptionsBuilder<AppDbContext>()
                     .UseSqlite($"Data Source={dbPath}")
                     .Options;
 
-                // 🔹 Create DbContext
                 var dbContext = new AppDbContext(options);
 
-                // 🔹 Create MainViewModel
                 var mainViewModel = new MainViewModel(dbContext);
 
-                // 🔹 Create window and assign MainViewModel as DataContext
                 var window = new TijdregistratieWindow
                 {
                     DataContext = mainViewModel

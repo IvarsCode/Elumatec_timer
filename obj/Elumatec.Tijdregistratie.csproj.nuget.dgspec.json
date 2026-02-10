@@ -52,11 +52,19 @@
           "dependencies": {
             "Avalonia": {
               "target": "Package",
-              "version": "[11.*, )"
+              "version": "[11.3.11, )"
+            },
+            "Avalonia.Controls.DataGrid": {
+              "target": "Package",
+              "version": "[11.3.11, )"
             },
             "Avalonia.Desktop": {
               "target": "Package",
-              "version": "[11.*, )"
+              "version": "[11.3.11, )"
+            },
+            "Avalonia.Diagnostics": {
+              "target": "Package",
+              "version": "[11.3.11, )"
             },
             "Avalonia.Themes.Fluent": {
               "target": "Package",

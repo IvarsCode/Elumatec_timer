@@ -4,7 +4,7 @@
         xmlns:views="clr-namespace:Elumatec.Tijdregistratie.Views;assembly=Elumatec.Tijdregistratie"
         x:Class="Elumatec.Tijdregistratie.Views.TijdregistratieWindow"
         Width="950"
-        Height="500"
+        Height="550"
         Title="Elumatec">
 
     <Window.DataTemplates>
