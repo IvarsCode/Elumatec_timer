@@ -4,18 +4,34 @@
 
     <Grid RowDefinitions="Auto,*" Margin="10">
 
-        <!-- ==================== Top controls row ==================== -->
         <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto"
               Grid.Row="0"
               VerticalAlignment="Top"
               ColumnSpacing="10">
 
-            <!-- New interventie button -->
+            <!-- New interventie button with pink background and border-only on hover -->
             <Button Content="Nieuwe interventie"
                     FontSize="18"
                     Padding="20,12"
-                    Command="{Binding NieuweInterventieCommand}" />
-            <!-- Comment: plain button, no styles -->
+                    Command="{Binding NieuweInterventieCommand}">
+                <Button.Styles>
+                    <Style Selector="Button">
+                        <Setter Property="Background" Value="#ff0092"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="BorderBrush" Value="#ff0092"/>
+                        <Setter Property="BorderThickness" Value="3"/>
+                        <Setter Property="CornerRadius" Value="4"/>
+                    </Style>
+                    <Style Selector="Button:pointerover /template/ ContentPresenter">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="#ff0092"/>
+                        <Setter Property="BorderThickness" Value="3"/>
+                    </Style>
+                    <Style Selector="Button:pointerover">
+                        <Setter Property="Foreground" Value="#ff0092"/>
+                    </Style>
+                </Button.Styles>
+            </Button>
 
             <!-- Filter label + dropdown -->
             <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2">

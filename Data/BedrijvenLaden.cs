@@ -44,6 +44,8 @@ class BedrijvenLaden
 
                     if (bedrijfNaam.StartsWith("XXX", StringComparison.OrdinalIgnoreCase))
                         continue;
+                    if (bedrijfNaam.StartsWith("TEST ", StringComparison.OrdinalIgnoreCase))
+                        continue;
 
                     // Check if this klantId already exists
                     if (db.Bedrijven.Any(b => b.klantId == klantId))

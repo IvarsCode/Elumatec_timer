@@ -27,15 +27,15 @@
                         VerticalAlignment="Center"
                         Spacing="10">
                 
-                <!-- Warning message -->
-                <Border Background="#FFEBEE"
-                        BorderBrush="#F44336"
+                <!-- Warning message with dynamic colors -->
+                <Border Background="{Binding StatusBackground}"
+                        BorderBrush="{Binding StatusBorderBrush}"
                         BorderThickness="1"
                         CornerRadius="4"
                         Padding="12,8"
                         IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                     <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="#C62828"
+                               Foreground="{Binding StatusForeground}"
                                TextWrapping="Wrap"
                                MaxWidth="400"
                                TextAlignment="Center"/>
@@ -87,6 +87,7 @@
                         FilterMode="Contains"
                         Watermark="Zoek bedrijf..."
                         IsVisible="{Binding !IsPrefilled}"
+                        IsEnabled="{Binding !IsReadOnly}"
                         MinimumPrefixLength="1"
                         ValueMemberBinding="{Binding BedrijfNaam}">
                         <AutoCompleteBox.ItemTemplate>
@@ -107,44 +108,29 @@
                                FontSize="14"/>
                 </StackPanel>
 
-                <!-- <StackPanel>
-                    <TextBlock Text="Machine" FontWeight="SemiBold"/> -->
-    
+                <StackPanel>
+                    <TextBlock Text="Machine" FontWeight="SemiBold"/>
+
                     <!-- AutoCompleteBox for searching Machines (only for new interventies) -->
-                    <!-- <AutoCompleteBox 
+                    <AutoCompleteBox 
                         ItemsSource="{Binding MachineSuggestions}"
                         SelectedItem="{Binding SelectedMachine}"
                         FilterMode="Contains"
                         Watermark="Zoek machine..."
                         IsVisible="{Binding !IsPrefilled}"
+                        IsEnabled="{Binding !IsReadOnly}"
                         MinimumPrefixLength="1"
-                        ValueMemberBinding="{Binding Machine}">
+                        ValueMemberBinding="{Binding MachineNaam}">
                         <AutoCompleteBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Machine}" FontWeight="SemiBold"/>
-                                    <TextBlock Text="{Binding Stad}" FontSize="11" Opacity="0.6"/>
+                                    <TextBlock Text="{Binding MachineNaam}" FontWeight="SemiBold"/>
                                 </StackPanel>
                             </DataTemplate>
                         </AutoCompleteBox.ItemTemplate>
-                    </AutoCompleteBox> -->
+                    </AutoCompleteBox>
                     
-                    <!-- Show selected bedrijf name when prefilled (read-only for existing interventies) -->
-                    <!-- <TextBlock Text="{Binding Bedrijfsnaam}"
-                               IsVisible="{Binding IsPrefilled}"
-                               Padding="8"
-                               Background="#F5F5F5"
-                               FontSize="14"/>
-                </StackPanel> -->
-
-                <StackPanel>
-                    <TextBlock Text="Machine" FontWeight="SemiBold"/>
-                    
-                    <!-- TextBox for new interventies -->
-                    <TextBox Text="{Binding Machine}"
-                             IsVisible="{Binding !IsPrefilled}"/>
-                    
-                    <!-- Read-only display for existing interventies -->
+                    <!-- Show selected Machine name when prefilled (read-only for existing interventies) -->
                     <TextBlock Text="{Binding Machine}"
                                IsVisible="{Binding IsPrefilled}"
                                Padding="8"
@@ -154,17 +140,21 @@
 
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Naam" FontWeight="SemiBold"/>
-                    <TextBox Text="{Binding ContactpersoonNaam}"/>
+                    
+                    <TextBox Text="{Binding ContactpersoonNaam}"
+                             IsReadOnly="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Email" FontWeight="SemiBold"/>
-                    <TextBox Text="{Binding ContactpersoonEmail}"/>
+                    <TextBox Text="{Binding ContactpersoonEmail}"
+                             IsReadOnly="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Telefoon" FontWeight="SemiBold"/>
-                    <TextBox Text="{Binding ContactpersoonTelefoon}"/>
+                    <TextBox Text="{Binding ContactpersoonTelefoon}"
+                             IsReadOnly="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -173,6 +163,42 @@
                             FontSize="16"
                             Padding="8"
                             Background="#F5F5F5"/>
+                </StackPanel>
+
+                <!-- Previous Calls List -->
+                <StackPanel IsVisible="{Binding PreviousCalls.Count}">
+                    <TextBlock Text="Eerdere gesprekken" 
+                               FontWeight="SemiBold" 
+                               Margin="0,10,0,5"/>
+                    
+                    <ScrollViewer MaxHeight="180" 
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding PreviousCalls}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding $parent[UserControl].DataContext.LoadPreviousCallCommand}"
+                                            CommandParameter="{Binding}"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Left"
+                                            Margin="0,2"
+                                            Padding="8">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding StartCall, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" 
+                                                       FontWeight="SemiBold"
+                                                       FontSize="12"/>
+                                            <TextBlock Text="{Binding ExterneNotities}" 
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="250"
+                                                       FontSize="11"
+                                                       Opacity="0.7"
+                                                       MaxLines="2"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
                 </StackPanel>
 
             </StackPanel>
@@ -185,7 +211,8 @@
                     <TextBox Text="{Binding InterneNotities}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
-                             Height="200"/>
+                             Height="200"
+                             IsReadOnly="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -193,7 +220,8 @@
                     <TextBox Text="{Binding ExterneNotities}"
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
-                             Height="200"/>
+                             Height="200"
+                             IsReadOnly="{Binding IsReadOnly}"/>
                 </StackPanel>
 
             </StackPanel>
@@ -211,11 +239,23 @@
                         Spacing="10"
                         VerticalAlignment="Bottom">
 
-                <Button Content="Tijdelijk stoppen"
-                        Command="{Binding StopAndSaveCommand}"/>
+                <Button Content="Annuleren"
+                        Command="{Binding CancelCommand}"
+                        Background="#F44336"
+                        Foreground="White"
+                        Padding="12,8"/>
+
+                <Button Content="Opslaan"
+                        Command="{Binding StopAndSaveCommand}"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        Padding="12,8"/>
 
                 <Button Content="Afronden &amp; PDF maken"
-                        Command="{Binding DownloadPdfCommand}"/>
+                        Command="{Binding DownloadPdfCommand}"
+                        Background="#4CAF50"
+                        Foreground="White"
+                        Padding="12,8"/>
 
             </StackPanel>
 
