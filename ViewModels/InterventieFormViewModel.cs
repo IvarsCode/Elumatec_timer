@@ -25,6 +25,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
         private DateTime? _callStartTime;
 
         private Bedrijf? _selectedBedrijf;
+        private Machine? _selectedMachine;
         private string _bedrijfsnaam = "";
         private string _machine = "";
         private string _interneNotities = "";
@@ -51,27 +52,27 @@ namespace Elumatec.Tijdregistratie.ViewModels
             }
         }
 
-        // public List<Machine> MachineSuggestions { get; }
+        public List<Machine> MachineSuggestions { get; }
 
         // Selected machine from search
-        // public Machine? SelectedMachine
-        // {
-        //     get => _selectedMachine;
-        //     set
-        //     {
-        //         _selectedMachine = value;
-        //         if (value != null)
-        //         {
-        //             Machine = value.Machine;
-        //         }
-        //         OnPropertyChanged();
-        //         UpdateStatusAfterWarning();
-        //     }
-        // }
+        public Machine? SelectedMachine
+        {
+            get => _selectedMachine;
+            set
+            {
+                _selectedMachine = value;
+                if (value != null)
+                {
+                    Machine = value.MachineNaam;
+                }
+                OnPropertyChanged();
+                UpdateStatusAfterWarning();
+            }
+        }
 
         private bool _importantWarningActive = false;
         private bool _nonImportantWarningActive = false;
-
+        private bool _cancelWarningActive = false;
 
         private string _statusMessage = "";
         public string StatusMessage
@@ -80,20 +81,44 @@ namespace Elumatec.Tijdregistratie.ViewModels
             set { _statusMessage = value; OnPropertyChanged(); }
         }
 
-        private bool _isStatusGreen;
-        public bool IsStatusGreen
+        private string _statusColor = "Red"; // Red, Yellow, or Green
+        public string StatusColor
         {
-            get => _isStatusGreen;
+            get => _statusColor;
             private set
             {
-                if (_isStatusGreen != value)
+                if (_statusColor != value)
                 {
-                    _isStatusGreen = value;
+                    _statusColor = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(StatusBackground));
+                    OnPropertyChanged(nameof(StatusBorderBrush));
                     OnPropertyChanged(nameof(StatusForeground));
                 }
             }
         }
+
+        // Color properties for binding
+        public string StatusBackground => _statusColor switch
+        {
+            "Green" => "#E8F5E9",
+            "Yellow" => "#FFF9C4",
+            _ => "#FFEBEE"
+        };
+
+        public string StatusBorderBrush => _statusColor switch
+        {
+            "Green" => "#4CAF50",
+            "Yellow" => "#FFC107",
+            _ => "#F44336"
+        };
+
+        public string StatusForeground => _statusColor switch
+        {
+            "Green" => "#2E7D32",
+            "Yellow" => "#F57F17",
+            _ => "#C62828"
+        };
 
         private string _contactpersoonNaam = "";
         public string ContactpersoonNaam
@@ -115,8 +140,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
             get => _contactpersoonTelefoon;
             set { _contactpersoonTelefoon = value; OnPropertyChanged(); UpdateStatusAfterWarning(); }
         }
-
-        public IBrush StatusForeground => IsStatusGreen ? Brushes.Green : Brushes.Red;
 
         public Action? CloseRequested { get; set; }
 
@@ -167,15 +190,43 @@ namespace Elumatec.Tijdregistratie.ViewModels
             private set { _pdfDownloaded = value; OnPropertyChanged(); }
         }
 
+        // Previous calls list
+        private List<InterventieCall> _previousCalls = new List<InterventieCall>();
+        public List<InterventieCall> PreviousCalls
+        {
+            get => _previousCalls;
+            private set { _previousCalls = value; OnPropertyChanged(); }
+        }
+
+        private InterventieCall? _currentlyLoadedCall;
+        public InterventieCall? CurrentlyLoadedCall
+        {
+            get => _currentlyLoadedCall;
+            private set
+            {
+                _currentlyLoadedCall = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsReadOnly));
+            }
+        }
+
+        private InterventieCall? _pendingCallToLoad;
+
         public string Username => _currentUser.Naam;
+
+        // Fields are read-only when viewing a previous call
+        public bool IsReadOnly => CurrentlyLoadedCall != null;
 
         public ICommand StopAndSaveCommand { get; }
         public ICommand DownloadPdfCommand { get; }
+        public ICommand LoadPreviousCallCommand { get; }
+        public ICommand CancelCommand { get; }
 
         public InterventieFormViewModel(
             AppDbContext db,
             Medewerker currentUser,
-            Interventie? interventie = null)
+            Interventie? interventie = null,
+            InterventieCall? callToLoad = null)
         {
             _db = db;
             _currentUser = currentUser;
@@ -183,26 +234,44 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             // Load all bedrijven for autocomplete
             BedrijvenSuggestions = _db.Bedrijven.ToList();
+            MachineSuggestions = _db.Machines.ToList();
 
             if (interventie != null)
             {
                 // Load the associated bedrijf
                 _selectedBedrijf = _db.Bedrijven.FirstOrDefault(b => b.klantId == interventie.KlantId);
 
-                // Load the most recent call for this interventie
-                var mostRecentCall = _db.InterventieCalls
+                // Load all previous calls for this interventie
+                PreviousCalls = _db.InterventieCalls
                     .Where(c => c.InterventieId == interventie.Id)
-                    .OrderByDescending(c => c.Id)
-                    .FirstOrDefault();
+                    .OrderByDescending(c => c.StartCall)
+                    .ToList();
 
-                if (mostRecentCall != null)
+                // Check if we're loading a specific previous call
+                if (callToLoad != null)
                 {
-                    ContactpersoonNaam = mostRecentCall.ContactpersoonNaam ?? "";
-                    ContactpersoonEmail = mostRecentCall.ContactpersoonEmail ?? "";
-                    ContactpersoonTelefoon = mostRecentCall.ContactpersoonTelefoonNummer ?? "";
-                    // Leave notes empty for new call
-                    InterneNotities = "";
-                    ExterneNotities = "";
+                    // Load the specific call data
+                    CurrentlyLoadedCall = callToLoad;
+                    ContactpersoonNaam = callToLoad.ContactpersoonNaam ?? "";
+                    ContactpersoonEmail = callToLoad.ContactpersoonEmail ?? "";
+                    ContactpersoonTelefoon = callToLoad.ContactpersoonTelefoonNummer ?? "";
+                    InterneNotities = callToLoad.InterneNotities ?? "";
+                    ExterneNotities = callToLoad.ExterneNotities ?? "";
+                }
+                else
+                {
+                    // Load the most recent call for prefilling contact info
+                    var mostRecentCall = PreviousCalls.FirstOrDefault();
+
+                    if (mostRecentCall != null)
+                    {
+                        ContactpersoonNaam = mostRecentCall.ContactpersoonNaam ?? "";
+                        ContactpersoonEmail = mostRecentCall.ContactpersoonEmail ?? "";
+                        ContactpersoonTelefoon = mostRecentCall.ContactpersoonTelefoonNummer ?? "";
+                        // Leave notes empty for new call
+                        InterneNotities = "";
+                        ExterneNotities = "";
+                    }
                 }
 
                 IsPrefilled = true;
@@ -216,6 +285,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 IsPrefilled = false;
                 _totalTime = TimeSpan.Zero;
                 TotalTimeDisplay = "00:00:00";
+                PreviousCalls = new List<InterventieCall>();
             }
 
             // Current call always starts at zero
@@ -238,14 +308,45 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 var combinedTime = _totalTime.Add(_currentCallTime);
                 TotalTimeDisplay = combinedTime.ToString(@"hh\:mm\:ss");
             };
-            _timer.Start();
+
+            // Only start timer if we're NOT loading a previous call
+            if (callToLoad == null)
+            {
+                _timer.Start();
+            }
 
             StopAndSaveCommand = new RelayCommand(StopAndSave);
             DownloadPdfCommand = new RelayCommand(async () => await DownloadPdfAsync());
+            LoadPreviousCallCommand = new RelayCommand<InterventieCall>(LoadPreviousCall);
+            CancelCommand = new RelayCommand(Cancel);
+        }
+
+        private void Cancel()
+        {
+            // If warning is already active, close without saving
+            if (_cancelWarningActive)
+            {
+                _timer.Stop();
+                CloseRequested?.Invoke();
+                return;
+            }
+
+            // Show warning
+            _cancelWarningActive = true;
+            StatusMessage = "Weet u zeker dat u wilt annuleren?";
+            StatusColor = "Red";
         }
 
         private void StopAndSave()
         {
+            // If we're currently viewing a previous call (not actively recording), just close
+            if (CurrentlyLoadedCall != null)
+            {
+                _timer.Stop();
+                CloseRequested?.Invoke();
+                return;
+            }
+
             var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
             var currentMachine = (Machine ?? "").Trim();
             var currentInterneNotities = (InterneNotities ?? "").Trim();
@@ -254,47 +355,59 @@ namespace Elumatec.Tijdregistratie.ViewModels
             var cpEmail = (ContactpersoonEmail ?? "").Trim();
             var cpTelefoon = (ContactpersoonTelefoon ?? "").Trim();
 
-            // If everything is empty, stop timer and close
-            if (string.IsNullOrWhiteSpace(currentBedrijfsnaam) &&
-                string.IsNullOrWhiteSpace(currentMachine) &&
-                string.IsNullOrWhiteSpace(currentExterneNotities) &&
-                string.IsNullOrWhiteSpace(cpNaam))
+            // Check if all MUST FILL fields are empty
+            bool allMustFillEmpty = string.IsNullOrWhiteSpace(currentBedrijfsnaam) &&
+                                    string.IsNullOrWhiteSpace(currentMachine) &&
+                                    string.IsNullOrWhiteSpace(currentExterneNotities) &&
+                                    string.IsNullOrWhiteSpace(cpNaam);
+
+            // If all must-fill fields are empty, just close
+            if (allMustFillEmpty)
             {
                 _timer.Stop();
                 CloseRequested?.Invoke();
                 return;
             }
 
-            // Important fields warning workflow (will NOT save)
-            if (!_importantWarningActive &&
-                !IsComplete(currentBedrijfsnaam, currentMachine, currentExterneNotities, cpNaam))
+            // Check if all MUST FILL fields are complete
+            bool allMustFillComplete = !string.IsNullOrWhiteSpace(currentBedrijfsnaam) &&
+                                       !string.IsNullOrWhiteSpace(currentMachine) &&
+                                       !string.IsNullOrWhiteSpace(currentExterneNotities) &&
+                                       !string.IsNullOrWhiteSpace(cpNaam);
+
+            // Check if optional fields are complete
+            bool optionalFieldsComplete = !string.IsNullOrWhiteSpace(cpEmail) &&
+                                          !string.IsNullOrWhiteSpace(cpTelefoon);
+
+            // CASE 1: Some but not all must-fill fields are filled
+            if (!allMustFillComplete && !_importantWarningActive)
             {
                 _importantWarningActive = true;
-                StatusMessage = "Contactgegevens zijn niet ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
-                IsStatusGreen = false;
+                StatusMessage = "Niet alle velden zijn ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
+                StatusColor = "Red";
                 return;
             }
 
-            // Handle important warning confirmation
+            // CASE 2: Important warning is active - user clicked again
             if (_importantWarningActive)
             {
                 // If still incomplete, close without saving
-                if (!IsComplete(currentBedrijfsnaam, currentMachine, currentExterneNotities, cpNaam))
+                if (!allMustFillComplete)
                 {
                     _timer.Stop();
                     CloseRequested?.Invoke();
                     return;
                 }
-                // If now complete, reset warning and continue to save logic
+                // If now complete, reset warning and continue to check optional fields
                 _importantWarningActive = false;
             }
 
-            // Non-important fields warning workflow (will still save after confirmation)
-            if (!_nonImportantWarningActive && !IsComplete(cpEmail, cpTelefoon))
+            // CASE 3: All must-fill complete, but optional fields missing
+            if (allMustFillComplete && !optionalFieldsComplete && !_nonImportantWarningActive)
             {
                 _nonImportantWarningActive = true;
-                StatusMessage = "Email en/of telefoonnummer ontbreken. Klik nog een keer om toch op te slaan";
-                IsStatusGreen = false;
+                StatusMessage = "Niet alle contactgegevens zijn ingevuld. Als u wilt opslaan zonder deze gegevens klik dan nog een keer";
+                StatusColor = "Yellow";
                 return;
             }
 
@@ -307,7 +420,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 if (_selectedBedrijf == null && _existingInterventie == null)
                 {
                     StatusMessage = "Selecteer een bedrijf voordat u opslaat";
-                    IsStatusGreen = false;
+                    StatusColor = "Red";
                     return;
                 }
 
@@ -335,47 +448,244 @@ namespace Elumatec.Tijdregistratie.ViewModels
             }
         }
 
-        // Overload for important fields only
-        private bool IsComplete(string bedrijfsnaam, string machine, string externe, string cpNaam)
+        private void LoadPreviousCall(InterventieCall? call)
         {
-            return !string.IsNullOrWhiteSpace(bedrijfsnaam) &&
-                   !string.IsNullOrWhiteSpace(machine) &&
-                   !string.IsNullOrWhiteSpace(externe) &&
-                   !string.IsNullOrWhiteSpace(cpNaam);
+            if (call == null) return;
+
+            // If we're currently viewing a previous call (not actively recording), just load the new call
+            if (CurrentlyLoadedCall != null)
+            {
+                LoadCallData(call);
+                return;
+            }
+
+            // First, go through the same validation as "Pauzeren"
+            var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
+            var currentMachine = (Machine ?? "").Trim();
+            var currentExterneNotities = (ExterneNotities ?? "").Trim();
+            var cpNaam = (ContactpersoonNaam ?? "").Trim();
+            var cpEmail = (ContactpersoonEmail ?? "").Trim();
+            var cpTelefoon = (ContactpersoonTelefoon ?? "").Trim();
+
+            // Check if all MUST FILL fields are empty
+            bool allMustFillEmpty = string.IsNullOrWhiteSpace(currentBedrijfsnaam) &&
+                                    string.IsNullOrWhiteSpace(currentMachine) &&
+                                    string.IsNullOrWhiteSpace(currentExterneNotities) &&
+                                    string.IsNullOrWhiteSpace(cpNaam);
+
+            // If all must-fill fields are empty, just load the call
+            if (allMustFillEmpty)
+            {
+                LoadCallData(call);
+                return;
+            }
+
+            // Check if all MUST FILL fields are complete
+            bool allMustFillComplete = !string.IsNullOrWhiteSpace(currentBedrijfsnaam) &&
+                                       !string.IsNullOrWhiteSpace(currentMachine) &&
+                                       !string.IsNullOrWhiteSpace(currentExterneNotities) &&
+                                       !string.IsNullOrWhiteSpace(cpNaam);
+
+            // Check if optional fields are complete
+            bool optionalFieldsComplete = !string.IsNullOrWhiteSpace(cpEmail) &&
+                                          !string.IsNullOrWhiteSpace(cpTelefoon);
+
+            // CASE 1: Some but not all must-fill fields are filled
+            if (!allMustFillComplete && !_importantWarningActive)
+            {
+                _importantWarningActive = true;
+                StatusMessage = "Niet alle velden zijn ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
+                StatusColor = "Red";
+
+                // Store the call to load after confirmation
+                _pendingCallToLoad = call;
+                return;
+            }
+
+            // CASE 2: Important warning is active - user clicked again
+            if (_importantWarningActive && _pendingCallToLoad == call)
+            {
+                // If still incomplete, load without saving
+                if (!allMustFillComplete)
+                {
+                    LoadCallData(call);
+                    return;
+                }
+                // If now complete, reset warning and continue to check optional fields
+                _importantWarningActive = false;
+                _pendingCallToLoad = null;
+            }
+
+            // CASE 3: All must-fill complete, but optional fields missing
+            if (allMustFillComplete && !optionalFieldsComplete && !_nonImportantWarningActive)
+            {
+                _nonImportantWarningActive = true;
+                StatusMessage = "Niet alle contactgegevens zijn ingevuld. Als u wilt opslaan zonder deze gegevens klik dan nog een keer";
+                StatusColor = "Yellow";
+
+                // Store the call to load after confirmation
+                _pendingCallToLoad = call;
+                return;
+            }
+
+            // CASE 4: Non-important warning is active - save and then load
+            if (_nonImportantWarningActive && _pendingCallToLoad == call)
+            {
+                SaveCurrentCallThenLoad(call);
+                return;
+            }
+
+            // If all fields complete, save and load
+            if (allMustFillComplete && optionalFieldsComplete)
+            {
+                SaveCurrentCallThenLoad(call);
+            }
         }
 
-        // Overload for email and phone only
-        private bool IsComplete(string cpEmail, string cpTelefoon)
+        private void SaveCurrentCallThenLoad(InterventieCall callToLoad)
         {
-            return !string.IsNullOrWhiteSpace(cpEmail) &&
-                   !string.IsNullOrWhiteSpace(cpTelefoon);
+            // Validate that a bedrijf is selected
+            if (_selectedBedrijf == null && _existingInterventie == null)
+            {
+                StatusMessage = "Selecteer een bedrijf voordat u opslaat";
+                StatusColor = "Red";
+                return;
+            }
+
+            var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
+            var currentMachine = (Machine ?? "").Trim();
+            var currentInterneNotities = (InterneNotities ?? "").Trim();
+            var currentExterneNotities = (ExterneNotities ?? "").Trim();
+            var cpNaam = (ContactpersoonNaam ?? "").Trim();
+            var cpEmail = (ContactpersoonEmail ?? "").Trim();
+            var cpTelefoon = (ContactpersoonTelefoon ?? "").Trim();
+
+            var callEndTime = DateTime.Now;
+
+            // Save current call
+            InterventieFormRepository.Save(
+                db: _db,
+                existing: _existingInterventie,
+                bedrijfsnaam: currentBedrijfsnaam,
+                machine: currentMachine,
+                klantId: _selectedBedrijf?.Id ?? _existingInterventie!.KlantId,
+                medewerkerId: _currentUser.Id,
+                contactpersoonNaam: cpNaam,
+                contactpersoonEmail: cpEmail,
+                contactpersoonTelefoon: cpTelefoon,
+                interneNotities: currentInterneNotities,
+                externeNotities: currentExterneNotities,
+                callStartTime: _callStartTime,
+                callEndTime: callEndTime
+            );
+
+            _timer.Stop();
+
+            // Reload the previous calls list to include the newly saved call
+            if (_existingInterventie != null)
+            {
+                PreviousCalls = _db.InterventieCalls
+                    .Where(c => c.InterventieId == _existingInterventie.Id)
+                    .OrderByDescending(c => c.StartCall)
+                    .ToList();
+            }
+
+            // Reset warnings
+            _importantWarningActive = false;
+            _nonImportantWarningActive = false;
+            _pendingCallToLoad = null;
+            StatusMessage = "";
+
+            // Load the selected call
+            LoadCallData(callToLoad);
         }
 
-        // Full completion check (all fields)
-        private bool IsComplete()
+        private void LoadCallData(InterventieCall call)
         {
-            return !string.IsNullOrWhiteSpace(Bedrijfsnaam) &&
-                   !string.IsNullOrWhiteSpace(Machine) &&
-                   !string.IsNullOrWhiteSpace(InterneNotities) &&
-                   !string.IsNullOrWhiteSpace(ExterneNotities) &&
-                   !string.IsNullOrWhiteSpace(ContactpersoonNaam) &&
-                   !string.IsNullOrWhiteSpace(ContactpersoonEmail) &&
-                   !string.IsNullOrWhiteSpace(ContactpersoonTelefoon);
+            _timer.Stop();
+
+            CurrentlyLoadedCall = call;
+            ContactpersoonNaam = call.ContactpersoonNaam ?? "";
+            ContactpersoonEmail = call.ContactpersoonEmail ?? "";
+            ContactpersoonTelefoon = call.ContactpersoonTelefoonNummer ?? "";
+            InterneNotities = call.InterneNotities ?? "";
+            ExterneNotities = call.ExterneNotities ?? "";
+
+            // Reset warnings
+            _importantWarningActive = false;
+            _nonImportantWarningActive = false;
+            _cancelWarningActive = false;
+            _pendingCallToLoad = null;
+            StatusMessage = "";
+
+            // Reset call start time since we're viewing a previous call
+            _callStartTime = null;
+            _currentCallTime = TimeSpan.Zero;
+            TimerDisplay = "00:00:00";
         }
 
         private void UpdateStatusAfterWarning()
         {
-            if (!_importantWarningActive) return;
-
-            if (IsComplete())
+            // Reset cancel warning when user types
+            if (_cancelWarningActive)
             {
-                StatusMessage = "Interventie zal worden opgeslagen door deze knop";
-                IsStatusGreen = true;
+                _cancelWarningActive = false;
+                StatusMessage = "";
             }
-            else
+
+            // Only update if a warning is currently active
+            if (!_importantWarningActive && !_nonImportantWarningActive) return;
+
+            var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
+            var currentMachine = (Machine ?? "").Trim();
+            var currentExterneNotities = (ExterneNotities ?? "").Trim();
+            var cpNaam = (ContactpersoonNaam ?? "").Trim();
+            var cpEmail = (ContactpersoonEmail ?? "").Trim();
+            var cpTelefoon = (ContactpersoonTelefoon ?? "").Trim();
+
+            bool allMustFillComplete = !string.IsNullOrWhiteSpace(currentBedrijfsnaam) &&
+                                       !string.IsNullOrWhiteSpace(currentMachine) &&
+                                       !string.IsNullOrWhiteSpace(currentExterneNotities) &&
+                                       !string.IsNullOrWhiteSpace(cpNaam);
+
+            bool optionalFieldsComplete = !string.IsNullOrWhiteSpace(cpEmail) &&
+                                          !string.IsNullOrWhiteSpace(cpTelefoon);
+
+            bool allFieldsComplete = allMustFillComplete && optionalFieldsComplete;
+
+            // If important warning is active
+            if (_importantWarningActive)
             {
-                StatusMessage = "Door niet alles in te vullen wordt deze informatie niet opgeslagen. Druk nog een keer om dit te bevestigen";
-                IsStatusGreen = false;
+                if (allFieldsComplete)
+                {
+                    StatusMessage = "Alle velden ingevuld, door te pauzeren wordt de interventie opgeslagen";
+                    StatusColor = "Green";
+                }
+                else if (allMustFillComplete)
+                {
+                    StatusMessage = "Niet alle contactgegevens zijn ingevuld. Als u wilt opslaan zonder deze gegevens klik dan nog een keer";
+                    StatusColor = "Yellow";
+                }
+                else
+                {
+                    StatusMessage = "Contactgegevens zijn niet ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
+                    StatusColor = "Red";
+                }
+            }
+
+            // If non-important warning is active
+            if (_nonImportantWarningActive)
+            {
+                if (allFieldsComplete)
+                {
+                    StatusMessage = "Alle velden ingevuld, door te pauzeren wordt de interventie opgeslagen";
+                    StatusColor = "Green";
+                }
+                else
+                {
+                    StatusMessage = "Niet alle contactgegevens zijn ingevuld. Als u wilt opslaan zonder deze gegevens klik dan nog een keer";
+                    StatusColor = "Yellow";
+                }
             }
         }
 
