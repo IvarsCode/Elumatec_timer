@@ -9,9 +9,9 @@ namespace Elumatec.Tijdregistratie.Data
 {
     public static class InterventieFormRepository
     {
-        /// <summary>
+
         /// Saves or updates an Interventie and creates a new InterventieCall record
-        /// </summary>
+
         public static void Save(
             AppDbContext db,
             Interventie? existing,

@@ -46,7 +46,7 @@ public class AppDbContext : DbContext
             .Property(m => m.Id)
             .ValueGeneratedOnAdd();
 
-        // Configure DateTime columns for SQLite (stored as TEXT)
+        // Configure DateTime columns for SQLite 
         modelBuilder.Entity<InterventieCall>()
             .Property(c => c.StartCall)
             .HasColumnType("TEXT");
