@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.Media;
 using Elumatec.Tijdregistratie.Data;
 using Elumatec.Tijdregistratie.Models;
+using Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF;
 using Microsoft.EntityFrameworkCore;
 
 namespace Elumatec.Tijdregistratie.ViewModels
@@ -707,8 +708,37 @@ namespace Elumatec.Tijdregistratie.ViewModels
         private async Task DownloadPdfAsync()
         {
             _timer.Stop();
-            PdfDownloaded = true;
-            await Task.Delay(1500);
+
+            try
+            {
+                var pdfGenerator = new ServiceBonPdf();
+                string pdfPath = pdfGenerator.GeneratePdf(
+                    Bedrijfsnaam,
+                    Machine,
+                    InterneNotities,
+                    ExterneNotities,
+                    Username,
+                    _totalTime
+                );
+
+                // Open the PDF file
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = pdfPath,
+                    UseShellExecute = true
+                });
+
+                PdfDownloaded = true;
+                await Task.Delay(1500);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating PDF: {ex.Message}");
+                StatusMessage = $"Fout bij PDF generatie: {ex.Message}";
+                StatusColor = "Red";
+                return;
+            }
+
             CloseRequested?.Invoke();
         }
 
