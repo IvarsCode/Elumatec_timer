@@ -719,9 +719,11 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 }
 
                 var pdfGenerator = new ServiceBonPdf(_db);
-                string pdfPath = pdfGenerator.GeneratePdf(interventieId, Username);
 
-                // Open the PDF file
+                // Run PDF generation on a background thread to avoid blocking UI
+                string pdfPath = await Task.Run(() => pdfGenerator.GeneratePdf(interventieId, Username));
+
+                // Open the PDF file (on UI thread)
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = pdfPath,

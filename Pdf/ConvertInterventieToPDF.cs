@@ -103,18 +103,34 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 foreach (var call in calls)
                 {
                     i++;
-                    var duration = call.EindCall - call.StartCall;
-                    tijden.AddCell(call.StartCall.ToString());
-                    tijden.AddCell(call.EindCall.ToString());
-                    tijden.AddCell(duration.ToString().Split('.')[0]);
-                    tijden.AddCell(call.ContactpersoonNaam ?? "-");
+                    // Safely handle nullable start/end times
+                    string startText = call.StartCall.HasValue ? call.StartCall.Value.ToString() : "-";
+                    string endText = call.EindCall.HasValue ? call.EindCall.Value.ToString() : "-";
+
+                    string durationText;
+                    if (call.StartCall.HasValue && call.EindCall.HasValue)
+                    {
+                        var duration = call.EindCall.Value - call.StartCall.Value;
+                        durationText = duration.ToString(@"hh\:mm\:ss");
+                    }
+                    else
+                    {
+                        durationText = "-";
+                    }
+
+                    string contactNaam = call.ContactpersoonNaam ?? "-";
+
+                    tijden.AddCell(startText);
+                    tijden.AddCell(endText);
+                    tijden.AddCell(durationText);
+                    tijden.AddCell(contactNaam);
                     tijden.AddCell("Call number: " + i);
                 }
                 doc.Add(tijden);
                 var total = TimeSpan.FromTicks(
                     calls
                         .Where(c => c.StartCall.HasValue && c.EindCall.HasValue)
-                        .Sum(c => (c.EindCall.Value - c.StartCall.Value).Ticks)
+                        .Sum(c => (c.EindCall!.Value - c.StartCall!.Value).Ticks)
                 );
                 doc.Add(
                     new Paragraph(
@@ -135,13 +151,14 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 doc.Add(new Paragraph(" "));
 
                 doc.Add(new Paragraph("Contact Personen informatie").SetFont(boldFont).SetFontSize(20));
-                List<String> Contactpersonen = new List<String>();
+                List<string> Contactpersonen = new List<string>();
                 foreach (var call in calls)
                 {
-                    if (!Contactpersonen.Contains(call.ContactpersoonNaam))
+                    var contactNaam = call.ContactpersoonNaam ?? "-";
+                    if (!Contactpersonen.Contains(contactNaam) && contactNaam != "-")
                     {
-                        Contactpersonen.Add(call.ContactpersoonNaam);
-                        doc.Add(new Paragraph(call.ContactpersoonNaam ?? "-").SetFont(boldFont).SetFontSize(14));
+                        Contactpersonen.Add(contactNaam);
+                        doc.Add(new Paragraph(contactNaam).SetFont(boldFont).SetFontSize(14));
                         doc.Add(new Paragraph("Telefoonnummer: " + (call.ContactpersoonTelefoonNummer ?? "-")).SetFont(normalFont));
                         doc.Add(new Paragraph("Email: " + (call.ContactpersoonEmail ?? "-")).SetFont(normalFont));
                         doc.Add(new Paragraph(" "));
