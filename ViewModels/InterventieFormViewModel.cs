@@ -729,7 +729,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 });
 
                 PdfDownloaded = true;
-                await Task.Delay(1500);
             }
             catch (Exception ex)
             {
@@ -742,10 +741,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
             CloseRequested?.Invoke();
         }
 
-        public void StopTimer()
-        {
-            _timer.Stop();
-        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

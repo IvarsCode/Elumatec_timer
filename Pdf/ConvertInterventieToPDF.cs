@@ -55,66 +55,98 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     .SetBorder(Border.NO_BORDER));
 
                 header.AddCell(new Cell()
-                    .Add(new Paragraph("Contact:\nservice.nl@voilap.com\n+31 180 315 858").SetFontSize(9))
+                    .Add(new Paragraph("Contact:\nservice.nl@voilap.com\n+31 180 315 858").SetFontSize(11))
                     .SetTextAlignment(TextAlignment.RIGHT)
                     .SetBorder(Border.NO_BORDER));
 
                 doc.Add(header);
-                doc.Add(new Paragraph(" "));
+                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
 
                 // ===== ALGEMEEN =====
-                doc.Add(new Paragraph("Algemeen").SetFont(boldFont));
-                Table algemeen = new Table(new float[] { 30, 70 }).UseAllAvailableWidth();
+                doc.Add(new Paragraph("Algemeen").SetFont(boldFont).SetFontSize(20));
+                Table algemeen = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
                 AddRow(algemeen, "Servicemonteur:", medewerkerNaam, boldFont, normalFont);
                 AddRow(algemeen, "Uitvoerdatum:", DateTime.Now.ToString("dd-MM-yyyy HH:mm"), boldFont, normalFont);
                 AddRow(algemeen, "Type werkzaamheden:", "Service / interventie", boldFont, normalFont);
                 doc.Add(algemeen);
-                doc.Add(new Paragraph(" "));
+                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
 
                 // ===== ADRES =====
-                doc.Add(new Paragraph("Uitvoeringsadres").SetFont(boldFont));
-                Table adres = new Table(new float[] { 30, 70 }).UseAllAvailableWidth();
+                doc.Add(new Paragraph("Uitvoeringsadres").SetFont(boldFont).SetFontSize(20));
+                Table adres = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
                 AddRow(adres, "Bedrijf:", interventie.BedrijfNaam ?? "-", boldFont, normalFont);
-                AddRow(adres, "Machine:", interventie.Machine ?? "-", boldFont, normalFont);
+                AddRow(adres, "Adress", (interventie.StraatNaam ?? "-") + " " + (interventie.AdresNummer ?? ""), boldFont, normalFont);
+                AddRow(adres, "Postcode:", interventie.Postcode ?? "-", boldFont, normalFont);
+                AddRow(adres, "Stad:", interventie.Stad ?? "-", boldFont, normalFont);
+                AddRow(adres, "Land:", interventie.Land ?? "-", boldFont, normalFont);
                 doc.Add(adres);
-                doc.Add(new Paragraph(" "));
+
+                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
 
                 // ===== MACHINE =====
-                doc.Add(new Paragraph("Machine(s)").SetFont(boldFont));
-                Table machineTbl = new Table(new float[] { 30, 70 }).UseAllAvailableWidth();
+                doc.Add(new Paragraph("Machine(s)").SetFont(boldFont).SetFontSize(20));
+                Table machineTbl = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
                 AddRow(machineTbl, "Omschrijving:", interventie.Machine ?? "-", boldFont, normalFont);
                 AddRow(machineTbl, "Besturing:", "Elumatec", boldFont, normalFont);
                 doc.Add(machineTbl);
-                doc.Add(new Paragraph(" "));
+                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
 
                 // ===== TIJDEN =====
-                doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont));
-                Table tijden = new Table(new float[] { 25, 25, 25, 25 }).UseAllAvailableWidth();
+                doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont).SetFontSize(20));
+                Table tijden = new Table(new float[] { 25, 25, 10, 25, 15 }).UseAllAvailableWidth();
                 tijden.AddHeaderCell(Header("Begintijd", boldFont));
                 tijden.AddHeaderCell(Header("Eindtijd", boldFont));
                 tijden.AddHeaderCell(Header("Totaal", boldFont));
+                tijden.AddHeaderCell(Header("ContactPersoon", boldFont));
                 tijden.AddHeaderCell(Header("Omschrijving", boldFont));
-
+                int i = 0;
                 foreach (var call in calls)
                 {
-                    var duration = (call.EindCall - call.StartCall);
+                    i++;
+                    var duration = call.EindCall - call.StartCall;
                     tijden.AddCell(call.StartCall.ToString());
                     tijden.AddCell(call.EindCall.ToString());
-                    tijden.AddCell(duration.ToString());
-                    tijden.AddCell(call.ExterneNotities ?? "-");
+                    tijden.AddCell(duration.ToString().Split('.')[0]);
+                    tijden.AddCell(call.ContactpersoonNaam ?? "-");
+                    tijden.AddCell("Call number: " + i);
                 }
                 doc.Add(tijden);
+                var total = TimeSpan.FromTicks(
+                    calls
+                        .Where(c => c.StartCall.HasValue && c.EindCall.HasValue)
+                        .Sum(c => (c.EindCall.Value - c.StartCall.Value).Ticks)
+                );
+                doc.Add(
+                    new Paragraph(
+                        "Totaal gewerkte tijd: " +
+                        total.ToString(@"hh\:mm\:ss")
+                    ).SetFont(boldFont)
+                );
+
+
+
+
                 doc.Add(new Paragraph(" "));
 
                 // ===== NOTITIES =====
-                doc.Add(new Paragraph("Uitgevoerde werkzaamheden").SetFont(boldFont));
+                doc.Add(new Paragraph("Externe notities").SetFont(boldFont).SetFontSize(20));
                 var externeNotities = string.Join("\n", calls.Select(c => c.ExterneNotities ?? "-"));
                 doc.Add(new Paragraph(externeNotities).SetFont(normalFont));
                 doc.Add(new Paragraph(" "));
 
-                doc.Add(new Paragraph("Interne notities").SetFont(boldFont));
-                var interneNotities = string.Join("\n", calls.Select(c => c.InterneNotities ?? "-"));
-                doc.Add(new Paragraph(interneNotities).SetFont(normalFont));
+                doc.Add(new Paragraph("Contact Personen informatie").SetFont(boldFont).SetFontSize(20));
+                List<String> Contactpersonen = new List<String>();
+                foreach (var call in calls)
+                {
+                    if (!Contactpersonen.Contains(call.ContactpersoonNaam))
+                    {
+                        Contactpersonen.Add(call.ContactpersoonNaam);
+                        doc.Add(new Paragraph(call.ContactpersoonNaam ?? "-").SetFont(boldFont).SetFontSize(14));
+                        doc.Add(new Paragraph("Telefoonnummer: " + (call.ContactpersoonTelefoonNummer ?? "-")).SetFont(normalFont));
+                        doc.Add(new Paragraph("Email: " + (call.ContactpersoonEmail ?? "-")).SetFont(normalFont));
+                        doc.Add(new Paragraph(" "));
+                    }
+                }
 
                 // ===== FOOTER =====
                 doc.Add(new Paragraph("\n"));
