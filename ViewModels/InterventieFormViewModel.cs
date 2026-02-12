@@ -212,6 +212,21 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
         private InterventieCall? _pendingCallToLoad;
 
+        // Hover state for tooltip
+        private InterventieCall? _hoveredCall;
+        public InterventieCall? HoveredCall
+        {
+            get => _hoveredCall;
+            set
+            {
+                _hoveredCall = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsHoverInfoVisible));
+            }
+        }
+
+        public bool IsHoverInfoVisible => HoveredCall != null;
+
         public string Username => _currentUser.Naam;
 
         // Fields are read-only when viewing a previous call

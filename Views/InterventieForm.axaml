@@ -7,6 +7,20 @@
              d:DesignWidth="1000"
              d:DesignHeight="600">
 
+    <UserControl.Styles>
+        <Style Selector="TextBox.readonly-style">
+            <Setter Property="Background" Value="#F5F5F5"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="CaretBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.readonly-style:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#F5F5F5"/>
+        </Style>
+        <Style Selector="TextBox.readonly-style:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="#F5F5F5"/>
+        </Style>
+    </UserControl.Styles>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -142,19 +156,22 @@
                     <TextBlock Text="Contactpersoon Naam" FontWeight="SemiBold"/>
                     
                     <TextBox Text="{Binding ContactpersoonNaam}"
-                             IsReadOnly="{Binding IsReadOnly}"/>
+                             IsReadOnly="{Binding IsReadOnly}"
+                             Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Email" FontWeight="SemiBold"/>
                     <TextBox Text="{Binding ContactpersoonEmail}"
-                             IsReadOnly="{Binding IsReadOnly}"/>
+                             IsReadOnly="{Binding IsReadOnly}"
+                             Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Telefoon" FontWeight="SemiBold"/>
                     <TextBox Text="{Binding ContactpersoonTelefoon}"
-                             IsReadOnly="{Binding IsReadOnly}"/>
+                             IsReadOnly="{Binding IsReadOnly}"
+                             Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -181,7 +198,9 @@
                                             HorizontalAlignment="Stretch"
                                             HorizontalContentAlignment="Left"
                                             Margin="0,2"
-                                            Padding="8">
+                                            Padding="8"
+                                            PointerEntered="CallButton_PointerEntered"
+                                            PointerExited="CallButton_PointerExited">
                                         <StackPanel>
                                             <TextBlock Text="{Binding StartCall, StringFormat='{}{0:dd/MM/yyyy HH:mm}'}" 
                                                        FontWeight="SemiBold"
@@ -212,7 +231,8 @@
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
                              Height="200"
-                             IsReadOnly="{Binding IsReadOnly}"/>
+                             IsReadOnly="{Binding IsReadOnly}"
+                             Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
                 <StackPanel>
@@ -221,7 +241,8 @@
                              AcceptsReturn="True"
                              TextWrapping="Wrap"
                              Height="200"
-                             IsReadOnly="{Binding IsReadOnly}"/>
+                             IsReadOnly="{Binding IsReadOnly}"
+                             Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
             </StackPanel>
@@ -260,5 +281,75 @@
             </StackPanel>
 
         </StackPanel>
+
+        <!-- Hover Info Overlay -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                IsVisible="{Binding IsHoverInfoVisible}"
+                Background="#CC000000"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,100,0,0"
+                Padding="20"
+                CornerRadius="8"
+                MaxWidth="500"
+                BoxShadow="0 4 20 2 #40000000"
+                IsHitTestVisible="False">
+            <StackPanel Spacing="12" DataContext="{Binding HoveredCall}">
+                <TextBlock Text="Gespreksdetails" 
+                           FontSize="18" 
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"/>
+                
+                <Separator Background="#40FFFFFF"/>
+                
+                <StackPanel Spacing="8">
+                    <StackPanel>
+                        <TextBlock Text="Datum" 
+                                   FontSize="11" 
+                                   Foreground="#B0FFFFFF" 
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding StartCall, StringFormat='{}{0:dd/MM/yyyy}'}" 
+                                   FontSize="14" 
+                                   Foreground="White"/>
+                    </StackPanel>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Tijd" 
+                                   FontSize="11" 
+                                   Foreground="#B0FFFFFF" 
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding StartCall, StringFormat='{}{0:HH:mm}'}" 
+                                   FontSize="14" 
+                                   Foreground="White"/>
+                    </StackPanel>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Interne notities" 
+                                   FontSize="11" 
+                                   Foreground="#B0FFFFFF" 
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding InterneNotities}" 
+                                   TextWrapping="Wrap" 
+                                   FontSize="14" 
+                                   Foreground="White"
+                                   MaxHeight="100"/>
+                    </StackPanel>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Externe notities" 
+                                   FontSize="11" 
+                                   Foreground="#B0FFFFFF" 
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding ExterneNotities}" 
+                                   TextWrapping="Wrap" 
+                                   FontSize="14" 
+                                   Foreground="White"
+                                   MaxHeight="100"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
     </Grid>
 </UserControl>
