@@ -711,15 +711,15 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             try
             {
-                var pdfGenerator = new ServiceBonPdf();
-                string pdfPath = pdfGenerator.GeneratePdf(
-                    Bedrijfsnaam,
-                    Machine,
-                    InterneNotities,
-                    ExterneNotities,
-                    Username,
-                    _totalTime
-                );
+                // Get the current intervention ID
+                int interventieId = _existingInterventie?.Id ?? 0;
+                if (interventieId == 0)
+                {
+                    throw new Exception("No intervention ID available for PDF generation");
+                }
+
+                var pdfGenerator = new ServiceBonPdf(_db);
+                string pdfPath = pdfGenerator.GeneratePdf(interventieId, Username);
 
                 // Open the PDF file
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
