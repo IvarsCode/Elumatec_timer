@@ -7,6 +7,9 @@ using iText.Layout.Properties;
 using iText.Kernel.Font;
 using iText.IO.Font.Constants;
 using iText.IO.Font;
+using iText.Kernel.Geom;
+using iText.Kernel.Colors;
+using iText.Layout.Borders;
 
 namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 {
@@ -20,95 +23,131 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
             string medewerkerNaam,
             TimeSpan totalTime)
         {
-            // Safe output folder (works with OneDrive)
             string outputFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-            string filePath = Path.Combine(
+            string filePath = System.IO.Path.Combine(
                 outputFolder,
-                $"ServiceBon_{DateTime.Now:yyyyMMdd_HHmmss}.pdf"
+                $"Werkbon_{DateTime.Now:yyyyMMdd_HHmmss}.pdf"
             );
 
             try
             {
-                using (PdfWriter writer = new PdfWriter(filePath))
-                using (PdfDocument pdfDoc = new PdfDocument(writer))
-                using (Document document = new Document(pdfDoc))
-                {
-                    // Fonts (explicit encoding = stable)
-                    PdfFont boldFont = PdfFontFactory.CreateFont(
-                        StandardFonts.HELVETICA_BOLD,
-                        PdfEncodings.WINANSI,
-                        PdfFontFactory.EmbeddingStrategy.PREFER_NOT_EMBEDDED
-                    );
+                using var writer = new PdfWriter(filePath);
+                using var pdf = new PdfDocument(writer);
+                using var doc = new Document(pdf, PageSize.A4);
+                doc.SetMargins(30, 30, 30, 30);
 
-                    PdfFont normalFont = PdfFontFactory.CreateFont(
-                        StandardFonts.HELVETICA,
-                        PdfEncodings.WINANSI,
-                        PdfFontFactory.EmbeddingStrategy.PREFER_NOT_EMBEDDED
-                    );
+                PdfFont boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont normalFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-                    // Title
-                    document.Add(
-                        new Paragraph("SERVICEBON")
-                            .SetFont(boldFont)
-                            .SetFontSize(20)
-                            .SetTextAlignment(TextAlignment.CENTER)
-                    );
+                // ===== HEADER =====
+                Table header = new Table(new float[] { 70, 30 }).UseAllAvailableWidth();
 
-                    document.Add(new Paragraph(" "));
+                header.AddCell(new Cell()
+                    .Add(new Paragraph("WERKBON - WB-2025-1846").SetFont(boldFont))
+                    .SetBorder(Border.NO_BORDER));
 
-                    // Customer info
-                    document.Add(new Paragraph("Klantgegevens").SetFont(boldFont));
-                    document.Add(new Paragraph($"Bedrijf: {bedrijfsnaam}").SetFont(normalFont));
-                    document.Add(new Paragraph($"Machine: {machine}").SetFont(normalFont));
-                    document.Add(new Paragraph(" "));
+                header.AddCell(new Cell()
+                    .Add(new Paragraph("Contact:\nservice.nl@voilap.com\n+31 180 315 858")
+                        .SetFontSize(9))
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetBorder(Border.NO_BORDER));
 
-                    // Service info
-                    document.Add(new Paragraph("Servicegegevens").SetFont(boldFont));
-                    document.Add(new Paragraph($"Datum: {DateTime.Now:dd-MM-yyyy}").SetFont(normalFont));
-                    document.Add(new Paragraph($"Monteur: {medewerkerNaam}").SetFont(normalFont));
-                    document.Add(new Paragraph($"Tijd: {totalTime:hh\\:mm\\:ss}").SetFont(normalFont));
-                    document.Add(new Paragraph(" "));
+                doc.Add(header);
+                // doc.Add(new LineSeparator(new SolidLine()));
 
-                    // Internal notes
-                    if (!string.IsNullOrWhiteSpace(interneNotities))
-                    {
-                        document.Add(new Paragraph("Interne notities").SetFont(boldFont));
-                        document.Add(new Paragraph(interneNotities).SetFont(normalFont));
-                        document.Add(new Paragraph(" "));
-                    }
+                doc.Add(new Paragraph(" "));
 
-                    // External notes
-                    if (!string.IsNullOrWhiteSpace(externeNotities))
-                    {
-                        document.Add(new Paragraph("Externe notities").SetFont(boldFont));
-                        document.Add(new Paragraph(externeNotities).SetFont(normalFont));
-                        document.Add(new Paragraph(" "));
-                    }
+                // ===== ALGEMEEN =====
+                doc.Add(new Paragraph("Algemeen").SetFont(boldFont));
 
-                    // Signatures
-                    document.Add(new Paragraph("Handtekening klant:").SetFont(normalFont));
-                    document.Add(new Paragraph("______________________________"));
-                    document.Add(new Paragraph(" "));
+                Table algemeen = new Table(new float[] { 30, 70 }).UseAllAvailableWidth();
+                AddRow(algemeen, "Servicemonteur:", medewerkerNaam, boldFont, normalFont);
+                AddRow(algemeen, "Uitvoerdatum:", DateTime.Now.ToString("dd-MM-yyyy HH:mm"), boldFont, normalFont);
+                AddRow(algemeen, "Type werkzaamheden:", "Installatie nieuwe machine", boldFont, normalFont);
+                doc.Add(algemeen);
 
-                    document.Add(new Paragraph("Handtekening monteur:").SetFont(normalFont));
-                    document.Add(new Paragraph("______________________________"));
-                }
+                doc.Add(new Paragraph(" "));
+
+                // ===== ADRES =====
+                doc.Add(new Paragraph("Uitvoeringsadres").SetFont(boldFont));
+
+                Table adres = new Table(new float[] { 30, 70 }).UseAllAvailableWidth();
+                AddRow(adres, "Naam:", bedrijfsnaam, boldFont, normalFont);
+                AddRow(adres, "Adres:", "Wim Rötherlaan 16", boldFont, normalFont);
+                AddRow(adres, "Postcode / Plaats:", "5051JS GOIRLE", boldFont, normalFont);
+                doc.Add(adres);
+
+                doc.Add(new Paragraph(" "));
+
+                // ===== MACHINE =====
+                doc.Add(new Paragraph("Machine(s)").SetFont(boldFont));
+
+                Table machineTbl = new Table(new float[] { 30, 70 }).UseAllAvailableWidth();
+                AddRow(machineTbl, "Omschrijving:", machine, boldFont, normalFont);
+                AddRow(machineTbl, "Besturing:", "Elumatec", boldFont, normalFont);
+                doc.Add(machineTbl);
+
+                doc.Add(new Paragraph(" "));
+
+                // ===== TIJDEN =====
+                doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont));
+
+                Table tijden = new Table(new float[] { 25, 25, 25, 25 }).UseAllAvailableWidth();
+                tijden.AddHeaderCell(Header("Begintijd", boldFont));
+                tijden.AddHeaderCell(Header("Eindtijd", boldFont));
+                tijden.AddHeaderCell(Header("Totaal", boldFont));
+                tijden.AddHeaderCell(Header("Omschrijving", boldFont));
+
+                // for each call add a row with the times and description, for demo purposes we add 2 identical rows
+                tijden.AddCell("08:30");
+                tijden.AddCell("12:15");
+                tijden.AddCell(totalTime.ToString(@"hh\:mm"));
+                tijden.AddCell("Werkuren servicedienst");
+
+                tijden.AddCell("08:30");
+                tijden.AddCell("12:15");
+                tijden.AddCell(totalTime.ToString(@"hh\:mm"));
+                tijden.AddCell("Werkuren servicedienst");
+
+                doc.Add(tijden);
+
+                doc.Add(new Paragraph(" "));
+
+                // ===== NOTITIES =====
+                doc.Add(new Paragraph("Uitgevoerde werkzaamheden").SetFont(boldFont));
+                doc.Add(new Paragraph(externeNotities ?? "-").SetFont(normalFont));
+
+                doc.Add(new Paragraph(" "));
+
+                doc.Add(new Paragraph("Interne notities").SetFont(boldFont));
+                doc.Add(new Paragraph(interneNotities ?? "-").SetFont(normalFont));
+
+                // ===== FOOTER =====
+                doc.Add(new Paragraph("\n"));
+                // doc.Add(new LineSeparator(new SolidLine()));
+                doc.Add(new Paragraph(
+                    "Voilàp Netherlands B.V. | Hoogeveenenweg 204 | 2913 LV Nieuwerkerk a/d IJssel | www.elumatec.com")
+                    .SetFontSize(8)
+                    .SetTextAlignment(TextAlignment.CENTER));
             }
             catch (Exception ex)
             {
-                // Full exception for debugging
                 throw new Exception("Error creating PDF:\n" + ex, ex);
             }
 
-            // Final verification
-            if (!File.Exists(filePath))
-                throw new Exception("PDF file was not created.");
-
-            if (new FileInfo(filePath).Length == 0)
-                throw new Exception("PDF file is empty.");
-
             return filePath;
         }
+
+        private static void AddRow(Table table, string label, string value, PdfFont bold, PdfFont normal)
+        {
+            table.AddCell(new Cell().Add(new Paragraph(label).SetFont(bold)).SetBorder(Border.NO_BORDER));
+            table.AddCell(new Cell().Add(new Paragraph(value).SetFont(normal)).SetBorder(Border.NO_BORDER));
+        }
+
+        private static Cell Header(string text, PdfFont bold) =>
+            new Cell()
+                .Add(new Paragraph(text).SetFont(bold))
+                .SetBackgroundColor(ColorConstants.LIGHT_GRAY);
     }
 }
