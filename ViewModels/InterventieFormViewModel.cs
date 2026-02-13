@@ -704,6 +704,44 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 }
             }
         }
+        private void SaveCurrentCallForPdf()
+        {
+            if (CurrentlyLoadedCall != null)
+                return; // Geen actieve call
+
+            if (_selectedBedrijf == null && _existingInterventie == null)
+                throw new Exception("Geen bedrijf geselecteerd");
+
+            var callEndTime = DateTime.Now;
+
+            InterventieFormRepository.Save(
+                db: _db,
+                existing: _existingInterventie,
+                bedrijfsnaam: Bedrijfsnaam.Trim(),
+                machine: Machine.Trim(),
+                klantId: _selectedBedrijf?.Id ?? _existingInterventie!.KlantId,
+                medewerkerId: _currentUser.Id,
+                contactpersoonNaam: ContactpersoonNaam.Trim(),
+                contactpersoonEmail: ContactpersoonEmail.Trim(),
+                contactpersoonTelefoon: ContactpersoonTelefoon.Trim(),
+                interneNotities: InterneNotities.Trim(),
+                externeNotities: ExterneNotities.Trim(),
+                callStartTime: _callStartTime,
+                callEndTime: callEndTime
+            );
+
+            _timer.Stop();
+        }
+
+        private void MarkInterventieAsCompleted()
+        {
+            if (_existingInterventie == null) return;
+
+            _existingInterventie.Afgerond = 1;
+            _db.SaveChanges();
+        }
+
+
 
         private async Task DownloadPdfAsync()
         {
@@ -711,19 +749,24 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             try
             {
-                // Get the current intervention ID
+                //  Eerst huidige call opslaan
+                SaveCurrentCallForPdf();
+
+                //  Interventie afronden
+                MarkInterventieAsCompleted();
+
                 int interventieId = _existingInterventie?.Id ?? 0;
                 if (interventieId == 0)
-                {
                     throw new Exception("No intervention ID available for PDF generation");
-                }
 
                 var pdfGenerator = new ServiceBonPdf(_db);
 
-                // Run PDF generation on a background thread to avoid blocking UI
-                string pdfPath = await Task.Run(() => pdfGenerator.GeneratePdf(interventieId, Username));
+                //  PDF genereren (background thread)
+                string pdfPath = await Task.Run(() =>
+                    pdfGenerator.GeneratePdf(interventieId, Username)
+                );
 
-                // Open the PDF file (on UI thread)
+                //  PDF openen
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = pdfPath,
