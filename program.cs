@@ -12,8 +12,15 @@ namespace Elumatec.Tijdregistratie
         [STAThread]
         public static void Main(string[] args)
         {
-            var dbPath = Path.Combine(Environment.CurrentDirectory, "elumatec.db");
+            // make paths relative to the folder that actually contains the executable
+            // marker to verify compilation
+            Console.WriteLine("BUILD_MARKER_ABC123");
+
+            var exeDir = AppContext.BaseDirectory;
+            var dbPath = Path.Combine(exeDir, "elumatec.db");
+
             Console.WriteLine($"=== DATABASE INITIALIZATION ===");
+            Console.WriteLine($"Executable directory: {exeDir}");
             Console.WriteLine($"Database path: {dbPath}");
             Console.WriteLine($"Database exists: {File.Exists(dbPath)}");
 
@@ -31,8 +38,20 @@ namespace Elumatec.Tijdregistratie
                     db.Database.Migrate();
                     Console.WriteLine("Migrations completed successfully.");
 
+                    // ensure seed data for medewerkers and machines
+                    Console.WriteLine("\n=== SEEDING DEFAULT RECORDS ===");
+                    DataSeeder.Seed(db);
+                    Console.WriteLine("Seeding complete.");
+
                     Console.WriteLine("\n=== LOADING CSV DATA ===");
-                    BedrijvenLaden.LoadBedrijvenCsvToDb(db);
+
+                    // determine csv location next to the exe (published output).
+                    // the file is copied using its original Data\ path, so it lives
+                    // in a Data subdirectory of the publish folder.
+                    var csvPath = Path.Combine(exeDir, "Data", "bedrijvenLijst.csv");
+                    Console.WriteLine($"Looking for CSV at: {csvPath}");
+
+                    BedrijvenLaden.LoadBedrijvenCsvToDb(db, csvPath);
                     Console.WriteLine("CSV load completed successfully.");
                 }
 

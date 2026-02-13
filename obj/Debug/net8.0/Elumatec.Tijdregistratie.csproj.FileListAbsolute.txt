@@ -555,3 +555,4 @@ C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\obj\Debug\net8.0\refint
 C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\obj\Debug\net8.0\Elumatec.Tijdregistratie.pdb
 C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\obj\Debug\net8.0\Elumatec.Tijdregistratie.genruntimeconfig.cache
 C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\obj\Debug\net8.0\ref\Elumatec.Tijdregistratie.dll
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Debug\net8.0\Data\bedrijvenLijst.csv

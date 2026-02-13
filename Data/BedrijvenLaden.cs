@@ -7,12 +7,36 @@ using Elumatec.Tijdregistratie.Models;
 
 class BedrijvenLaden
 {
-    public static void LoadBedrijvenCsvToDb(AppDbContext db)
+    // csvPath parameter is optional; when null it will look next to the executable
+    public static void LoadBedrijvenCsvToDb(AppDbContext db, string? csvPath = null)
     {
         try
         {
-            var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-            var csvPath = Path.Combine(projectRoot, "Data", "bedrijvenLijst.csv");
+            if (string.IsNullOrEmpty(csvPath))
+            {
+                // published application: the build copies the CSV preserving the
+                // Data subdirectory, so first try that location. fall back to the
+                // exe directory root for backwards compatibility.
+                var exeDir = AppContext.BaseDirectory;
+                var candidate1 = Path.Combine(exeDir, "Data", "bedrijvenLijst.csv");
+                var candidate2 = Path.Combine(exeDir, "bedrijvenLijst.csv");
+
+                if (File.Exists(candidate1))
+                {
+                    csvPath = candidate1;
+                }
+                else if (File.Exists(candidate2))
+                {
+                    csvPath = candidate2;
+                }
+                else
+                {
+                    Console.WriteLine($"CSV file not found in expected locations:");
+                    Console.WriteLine($"  {candidate1}");
+                    Console.WriteLine($"  {candidate2}");
+                    return;
+                }
+            }
 
             if (!File.Exists(csvPath))
             {

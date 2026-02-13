@@ -20,4 +20,11 @@
     <PackageReference Include="itext7" Version="9.5.0" />
     <PackageReference Include="itext7.bouncy-castle-adapter" Version="9.5.0" />
   </ItemGroup>
+
+  <!-- ensure the company list CSV is copied to output/publish -->
+  <ItemGroup>
+    <None Include="Data\bedrijvenLijst.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

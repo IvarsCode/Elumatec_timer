@@ -69,6 +69,20 @@ public class AppDbContext : DbContext
             .HasForeignKey(c => c.MedewerkerId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Medewerker>().HasData(
+            new Medewerker { Id = 1, Naam = "Marcel" },
+            new Medewerker { Id = 2, Naam = "Aad" },
+            new Medewerker { Id = 3, Naam = "Bas" }
+        );
+
+        // also define a small set of default machines so migrations can pick them up
+        modelBuilder.Entity<Machine>().HasData(
+            new Machine { MachineNaam = "MachineA" },
+            new Machine { MachineNaam = "MachineB" },
+            new Machine { MachineNaam = "MachineC" }
+        );
+
+
         // Interventie -> Afgerond defaults
         modelBuilder.Entity<Interventie>()
             .Property(i => i.Afgerond)
