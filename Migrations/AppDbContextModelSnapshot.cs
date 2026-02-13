@@ -15,7 +15,7 @@ namespace Elumatec.Tijdregistratie.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.23");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.24");
 
             modelBuilder.Entity("Elumatec.Tijdregistratie.Models.AppState", b =>
                 {

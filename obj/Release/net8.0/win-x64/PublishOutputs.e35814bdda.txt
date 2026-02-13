@@ -1,0 +1,6 @@
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Release\net8.0\win-x64\publish\Elumatec.Tijdregistratie.pdb
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Release\net8.0\win-x64\publish\av_libglesv2.dll
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Release\net8.0\win-x64\publish\libHarfBuzzSharp.dll
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Release\net8.0\win-x64\publish\libSkiaSharp.dll
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Release\net8.0\win-x64\publish\e_sqlite3.dll
+C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\bin\Release\net8.0\win-x64\publish\Elumatec.Tijdregistratie.exe
