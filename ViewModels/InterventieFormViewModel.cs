@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.Media;
 using Elumatec.Tijdregistratie.Data;
 using Elumatec.Tijdregistratie.Models;
+using Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF;
 using Microsoft.EntityFrameworkCore;
 
 namespace Elumatec.Tijdregistratie.ViewModels
@@ -707,15 +708,41 @@ namespace Elumatec.Tijdregistratie.ViewModels
         private async Task DownloadPdfAsync()
         {
             _timer.Stop();
-            PdfDownloaded = true;
-            await Task.Delay(1500);
+
+            try
+            {
+                // Get the current intervention ID
+                int interventieId = _existingInterventie?.Id ?? 0;
+                if (interventieId == 0)
+                {
+                    throw new Exception("No intervention ID available for PDF generation");
+                }
+
+                var pdfGenerator = new ServiceBonPdf(_db);
+
+                // Run PDF generation on a background thread to avoid blocking UI
+                string pdfPath = await Task.Run(() => pdfGenerator.GeneratePdf(interventieId, Username));
+
+                // Open the PDF file (on UI thread)
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = pdfPath,
+                    UseShellExecute = true
+                });
+
+                PdfDownloaded = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error generating PDF: {ex.Message}");
+                StatusMessage = $"Fout bij PDF generatie: {ex.Message}";
+                StatusColor = "Red";
+                return;
+            }
+
             CloseRequested?.Invoke();
         }
 
-        public void StopTimer()
-        {
-            _timer.Stop();
-        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
