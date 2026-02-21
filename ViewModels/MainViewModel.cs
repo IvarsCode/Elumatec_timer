@@ -25,12 +25,26 @@ namespace Elumatec.Tijdregistratie.ViewModels
         public MainViewModel(AppDbContext db)
         {
             Db = db;
-            ShowUserSelection();
+            if (CurrentUser == null)
+                ShowUserSelection();
         }
 
+        public void SwitchUser()
+        {
+            CurrentUser = null;
+            CurrentView = new UserSelectionViewModel(Db, this);
+        }
 
         public void ShowUserSelection()
         {
+            var recentUser = MedewerkerRepository.GetRecentUser(Db);
+
+            if (recentUser != null)
+            {
+                UserSelected(recentUser);
+                return;
+            }
+
             CurrentView = new UserSelectionViewModel(Db, this);
         }
 
@@ -47,7 +61,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             var overviewVM = new InterventieOverviewViewModel(Db, CurrentUser);
 
-            overviewVM.TerugRequested = ShowUserSelection;
+            overviewVM.TerugRequested = SwitchUser;
             overviewVM.NieuweInterventieRequested = () => ShowInterventieForm(null);
             overviewVM.OpenInterventieRequested = interventie =>
                 ShowInterventieForm(interventie);

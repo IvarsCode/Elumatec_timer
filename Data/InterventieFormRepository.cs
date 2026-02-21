@@ -114,5 +114,26 @@ namespace Elumatec.Tijdregistratie.Data
                 db.SaveChanges();
             }
         }
+
+        public static void UpdateCall(
+    AppDbContext db,
+    int callId,
+    string contactpersoonNaam,
+    string? contactpersoonEmail,
+    string? contactpersoonTelefoon,
+    string? interneNotities,
+    string? externeNotities)
+        {
+            var call = db.InterventieCalls.FirstOrDefault(c => c.Id == callId);
+            if (call == null) throw new Exception($"InterventieCall with ID {callId} not found");
+
+            call.ContactpersoonNaam = contactpersoonNaam;
+            call.ContactpersoonEmail = contactpersoonEmail;
+            call.ContactpersoonTelefoonNummer = contactpersoonTelefoon;
+            call.InterneNotities = interneNotities;
+            call.ExterneNotities = externeNotities;
+
+            db.SaveChanges();
+        }
     }
 }

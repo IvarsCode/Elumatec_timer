@@ -73,6 +73,13 @@ namespace Elumatec.Tijdregistratie.ViewModels
             RecentUser = MedewerkerRepository.GetRecentUser(_db);
             _helpers = new AppStateHelpers(_db);
             _helpers.EnsureUniekeTellingExists();
+
+            // Auto-select the recent user if one exists
+            if (RecentUser != null)
+            {
+                SelectUser(RecentUser);
+                return;
+            }
         }
 
         private void FilterUsers()
