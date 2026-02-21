@@ -108,22 +108,16 @@
                                 <Grid ColumnDefinitions="2*,3*" ColumnSpacing="20">
                                     <!-- LEFT: main info -->
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Machine}" FontSize="20" FontWeight="Bold"/>
-                                        <TextBlock Text="{Binding Bedrijfsnaam}" Opacity="0.7" Margin="0,2,0,6"/>
+                                        <TextBlock Text="{Binding Bedrijfsnaam}" FontSize="20" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding Machine}" Opacity="0.7" Margin="0,2,0,6"/>
                                         <TextBlock Text="{Binding DatumRecentsteCall, StringFormat='Laatste call: {0:dd-MM-yyyy HH:mm}'}" FontSize="12" Opacity="0.6"/>
                                         <TextBlock Text="{Binding AantalCalls, StringFormat='Aantal calls: {0}'}" FontSize="12" Opacity="0.6"/>
                                     </StackPanel>
 
                                     <!-- RIGHT: notes -->
-                                    <StackPanel Grid.Column="1" Spacing="8" MinWidth="400" VerticalAlignment="Center">
-                                        <StackPanel>
+                                    <StackPanel Grid.Column="1" Spacing="8" MinWidth="400" VerticalAlignment="Top">
                                             <TextBlock Text="Interne notities" FontWeight="SemiBold" FontSize="13"/>
-                                            <TextBlock Text="{Binding InterneNotitiesKort}" TextWrapping="Wrap" Opacity="0.8" MaxHeight="50"/>
-                                        </StackPanel>
-                                        <StackPanel>
-                                            <TextBlock Text="Externe notities" FontWeight="SemiBold" FontSize="13"/>
-                                            <TextBlock Text="{Binding ExterneNotitiesKort}" TextWrapping="Wrap" Opacity="0.8" MaxHeight="50"/>
-                                        </StackPanel>
+                                            <TextBlock Text="{Binding InterneNotitiesKort}" TextWrapping="Wrap" Opacity="0.8"/>
                                     </StackPanel>
                                 </Grid>
                             </Button>

@@ -179,7 +179,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
         private static string Trim(string? text)
         {
             if (string.IsNullOrWhiteSpace(text)) return string.Empty;
-            return text.Length <= 80 ? text : text.Substring(0, 80) + "...";
+            return text.Length <= 330 ? text : text.Substring(0, 330) + "...";
         }
     }
 }

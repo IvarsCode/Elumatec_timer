@@ -39,10 +39,5 @@
                 CommandParameter="{Binding RecentUser}"
                 HorizontalContentAlignment="Left"/>
 
-        <TextBlock Text="{Binding SelectedUser.Naam, StringFormat='Selected user: {0}'}"
-                   Margin="0,15,0,0"
-                   FontStyle="Italic"
-                   IsVisible="{Binding HasSelectedUser}"/>
-
     </StackPanel>
 </UserControl>
