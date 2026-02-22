@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ivarh\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj": {}
+    "C:\\Users\\mh_mo\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ivarh\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj": {
+    "C:\\Users\\mh_mo\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ivarh\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj",
+        "projectUniqueName": "C:\\Users\\mh_mo\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj",
         "projectName": "Elumatec.Tijdregistratie",
-        "projectPath": "C:\\Users\\ivarh\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj",
-        "packagesPath": "C:\\Users\\ivarh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ivarh\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\obj\\",
+        "projectPath": "C:\\Users\\mh_mo\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\Elumatec.Tijdregistratie.csproj",
+        "packagesPath": "C:\\Users\\mh_mo\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\mh_mo\\OneDrive\\Documenten\\GitHub\\Elumatec_timer\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\ivarh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\mh_mo\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -44,7 +43,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
@@ -105,7 +105,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.303/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.311/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
