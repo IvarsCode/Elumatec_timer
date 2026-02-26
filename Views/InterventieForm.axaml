@@ -283,6 +283,27 @@
                              Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
+                <!-- Copy button aligned to right edge of fields -->
+                <Button Command="{Binding KopieerInterneNaarExterneCommand}"
+                        HorizontalAlignment="Right"
+                        Background="#E3F2FD"
+                        BorderBrush="#90CAF9"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12,8">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Kopieer"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"/>
+                        <PathIcon Data="M12 4 L12 18 M5 12 L12 20 L19 12"
+                                  Width="20"
+                                  Height="24"
+                                  Foreground="#1565C0"/>
+                    </StackPanel>
+                </Button>
+
+
                 <!-- Externe notities with save button -->
                 <StackPanel>
                     <Grid ColumnDefinitions="*,Auto">
@@ -353,15 +374,17 @@
                            Foreground="White"
                            HorizontalAlignment="Center"/>
                 <Border Height="1" Background="#B0FFFFFF"/>
-                <Grid ColumnDefinitions="140,120,*">
+                <Grid ColumnDefinitions="140,120,140,*">
                     <TextBlock Grid.Column="0" Text="Datum" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="1" Text="Tijd" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="2" Text="Contactpersoon" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="1" Text="Duur" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="2" Text="Medewerker" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="3" Text="Contactpersoon" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
                 </Grid>
-                <Grid ColumnDefinitions="140,120,*">
+                <Grid ColumnDefinitions="140,120,140,*">
                     <TextBlock Grid.Column="0" Text="{Binding StartCall, StringFormat='{}{0:dd-MM-yy}'}" FontSize="14" Foreground="White"/>
-                    <TextBlock Grid.Column="1" Text="{Binding StartCall, StringFormat='{}{0:HH:mm}'}" FontSize="14" Foreground="White"/>
-                    <TextBlock Grid.Column="2" Text="{Binding ContactpersoonNaam}" FontSize="14" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1" Text="{Binding CallDuration}" FontSize="14" Foreground="White"/>
+                    <TextBlock Grid.Column="2" Text="{Binding MedewerkerNaam}" FontSize="14" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="3" Text="{Binding ContactpersoonNaam}" FontSize="14" Foreground="White" TextTrimming="CharacterEllipsis"/>
                 </Grid>
                 <TextBlock Text="{Binding InterneNotities}"
                            TextWrapping="Wrap"

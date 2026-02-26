@@ -14,7 +14,45 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Elumatec.Tijdregistratie.ViewModels
 {
-    public class InterventieFormViewModel : INotifyPropertyChanged
+    /// Wraps an InterventieCall with computed display values (duration, medewerker name)
+    public class InterventieCallDisplay
+    {
+        public InterventieCall Call { get; }
+        private readonly string _medewerkerNaam;
+
+        public InterventieCallDisplay(InterventieCall call, string medewerkerNaam)
+        {
+            Call = call;
+            _medewerkerNaam = medewerkerNaam;
+        }
+
+        public int Id => Call.Id;
+        public DateTime? StartCall => Call.StartCall;
+        public DateTime? EindCall => Call.EindCall;
+        public string? ContactpersoonNaam => Call.ContactpersoonNaam;
+        public string? ContactpersoonEmail => Call.ContactpersoonEmail;
+        public string? ContactpersoonTelefoonNummer => Call.ContactpersoonTelefoonNummer;
+        public string? InterneNotities => Call.InterneNotities;
+        public string? ExterneNotities => Call.ExterneNotities;
+
+        public string MedewerkerNaam => _medewerkerNaam;
+
+        public string CallDuration
+        {
+            get
+            {
+                if (Call.StartCall == null || Call.EindCall == null) return "-";
+                var duration = Call.EindCall.Value - Call.StartCall.Value;
+                if (duration.TotalHours >= 1)
+                    return $"{(int)duration.TotalHours}u {duration.Minutes}m";
+                if (duration.TotalMinutes >= 1)
+                    return $"{(int)duration.TotalMinutes}m";
+                return $"{(int)duration.TotalSeconds}s";
+            }
+        }
+    }
+
+    public class InterventieFormViewModel : INotifyPropertyChanged, IClosingGuard
     {
         private readonly AppDbContext _db;
         private readonly DispatcherTimer _timer;
@@ -107,6 +145,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
         private bool _importantWarningActive = false;
         private bool _nonImportantWarningActive = false;
         private bool _cancelWarningActive = false;
+        private bool _copyWarningActive = false;
 
         private string _statusMessage = "";
         public string StatusMessage
@@ -251,8 +290,8 @@ namespace Elumatec.Tijdregistratie.ViewModels
             private set { _pdfDownloaded = value; OnPropertyChanged(); }
         }
 
-        private List<InterventieCall> _previousCalls = new List<InterventieCall>();
-        public List<InterventieCall> PreviousCalls
+        private List<InterventieCallDisplay> _previousCalls = new List<InterventieCallDisplay>();
+        public List<InterventieCallDisplay> PreviousCalls
         {
             get => _previousCalls;
             private set { _previousCalls = value; OnPropertyChanged(); }
@@ -271,10 +310,10 @@ namespace Elumatec.Tijdregistratie.ViewModels
             }
         }
 
-        private InterventieCall? _pendingCallToLoad;
+        private InterventieCallDisplay? _pendingCallToLoad;
 
-        private InterventieCall? _hoveredCall;
-        public InterventieCall? HoveredCall
+        private InterventieCallDisplay? _hoveredCall;
+        public InterventieCallDisplay? HoveredCall
         {
             get => _hoveredCall;
             set
@@ -300,6 +339,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
         public ICommand SaveContactpersoonTelefoonCommand { get; }
         public ICommand SaveInterneNotitiesCommand { get; }
         public ICommand SaveExterneNotitiesCommand { get; }
+        public ICommand KopieerInterneNaarExterneCommand { get; }
 
         public InterventieFormViewModel(
             AppDbContext db,
@@ -318,10 +358,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             {
                 _selectedBedrijf = _db.Bedrijven.FirstOrDefault(b => b.klantId == interventie.KlantId);
 
-                PreviousCalls = _db.InterventieCalls
-                    .Where(c => c.InterventieId == interventie.Id)
-                    .OrderByDescending(c => c.StartCall)
-                    .ToList();
+                PreviousCalls = LoadCallsForInterventie(interventie.Id);
 
                 if (callToLoad != null)
                 {
@@ -334,7 +371,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 }
                 else
                 {
-                    var mostRecentCall = PreviousCalls.FirstOrDefault();
+                    var mostRecentCall = PreviousCalls.FirstOrDefault()?.Call;
                     if (mostRecentCall != null)
                     {
                         ContactpersoonNaam = mostRecentCall.ContactpersoonNaam ?? "";
@@ -356,7 +393,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 IsPrefilled = false;
                 _totalTime = TimeSpan.Zero;
                 TotalTimeDisplay = "00:00:00";
-                PreviousCalls = new List<InterventieCall>();
+                PreviousCalls = new List<InterventieCallDisplay>();
             }
 
             _currentCallTime = TimeSpan.Zero;
@@ -385,8 +422,9 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             StopAndSaveCommand = new RelayCommand(StopAndSave);
             DownloadPdfCommand = new RelayCommand(async () => await DownloadPdfAsync());
-            LoadPreviousCallCommand = new RelayCommand<InterventieCall>(LoadPreviousCall);
+            LoadPreviousCallCommand = new RelayCommand<InterventieCallDisplay>(LoadPreviousCall);
             CancelCommand = new RelayCommand(Cancel);
+            KopieerInterneNaarExterneCommand = new RelayCommand(KopieerInterneNaarExterne);
 
             ConfirmNewCallCommand = new RelayCommand(() =>
             {
@@ -408,7 +446,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
                 var mostRecent = PreviousCalls.FirstOrDefault();
                 if (mostRecent != null)
-                    LoadCallData(mostRecent);
+                    LoadCallData(mostRecent.Call);
             });
 
             NieuweCallStartenCommand = new RelayCommand(() =>
@@ -416,7 +454,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 IsEditingMode = false;
                 ShowNieuweCallButton = false;
                 CurrentlyLoadedCall = null;
-                var mostRecent = PreviousCalls.FirstOrDefault();
+                var mostRecent = PreviousCalls.FirstOrDefault()?.Call;
                 ContactpersoonNaam = mostRecent?.ContactpersoonNaam ?? "";
                 ContactpersoonEmail = mostRecent?.ContactpersoonEmail ?? "";
                 ContactpersoonTelefoon = mostRecent?.ContactpersoonTelefoonNummer ?? "";
@@ -433,6 +471,47 @@ namespace Elumatec.Tijdregistratie.ViewModels
             SaveContactpersoonTelefoonCommand = new RelayCommand(SaveField);
             SaveInterneNotitiesCommand = new RelayCommand(SaveField);
             SaveExterneNotitiesCommand = new RelayCommand(SaveField);
+        }
+
+        private List<InterventieCallDisplay> LoadCallsForInterventie(int interventieId)
+        {
+            var medewerkers = _db.Medewerkers.ToDictionary(m => m.Id, m => m.Naam);
+
+            return _db.InterventieCalls
+                .Where(c => c.InterventieId == interventieId)
+                .OrderByDescending(c => c.StartCall)
+                .ToList()
+                .Select(c => new InterventieCallDisplay(
+                    c,
+                    medewerkers.TryGetValue(c.MedewerkerId, out var naam) ? naam : "-"
+                ))
+                .ToList();
+        }
+
+        private void KopieerInterneNaarExterne()
+        {
+            if (!string.IsNullOrWhiteSpace(ExterneNotities) && !_copyWarningActive)
+            {
+                _copyWarningActive = true;
+                StatusMessage = "Externe notities overschrijven?";
+                StatusColor = "Yellow";
+                return;
+            }
+
+            _copyWarningActive = false;
+            StatusMessage = "";
+            ExterneNotities = InterneNotities;
+        }
+
+        public bool OnWindowCloseRequested()
+        {
+            if (_cancelWarningActive)
+                return true;
+
+            _cancelWarningActive = true;
+            StatusMessage = "Niet-opgeslagen wijzigingen gaan verloren. Klik nogmaals om af te sluiten.";
+            StatusColor = "Red";
+            return false;
         }
 
         private void SaveField()
@@ -530,13 +609,9 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             if (_importantWarningActive)
             {
-                if (!allMustFillComplete)
-                {
-                    _timer.Stop();
-                    CloseRequested?.Invoke();
-                    return;
-                }
-                _importantWarningActive = false;
+                _timer.Stop();
+                CloseRequested?.Invoke();
+                return;
             }
 
             if (allMustFillComplete && !optionalFieldsComplete && !_nonImportantWarningActive)
@@ -581,9 +656,10 @@ namespace Elumatec.Tijdregistratie.ViewModels
             }
         }
 
-        private void LoadPreviousCall(InterventieCall? call)
+        private void LoadPreviousCall(InterventieCallDisplay? display)
         {
-            if (call == null) return;
+            if (display == null) return;
+            var call = display.Call;
 
             if (CurrentlyLoadedCall != null || IsEditingMode)
             {
@@ -622,11 +698,11 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 _importantWarningActive = true;
                 StatusMessage = "Niet alle velden zijn ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
                 StatusColor = "Red";
-                _pendingCallToLoad = call;
+                _pendingCallToLoad = display;
                 return;
             }
 
-            if (_importantWarningActive && _pendingCallToLoad == call)
+            if (_importantWarningActive && _pendingCallToLoad == display)
             {
                 if (!allMustFillComplete)
                 {
@@ -642,11 +718,11 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 _nonImportantWarningActive = true;
                 StatusMessage = "Niet alle contactgegevens zijn ingevuld. Als u wilt opslaan zonder deze gegevens klik dan nog een keer";
                 StatusColor = "Yellow";
-                _pendingCallToLoad = call;
+                _pendingCallToLoad = display;
                 return;
             }
 
-            if (_nonImportantWarningActive && _pendingCallToLoad == call)
+            if (_nonImportantWarningActive && _pendingCallToLoad == display)
             {
                 SaveCurrentCallThenLoad(call);
                 return;
@@ -694,12 +770,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             _timer.Stop();
 
             if (_existingInterventie != null)
-            {
-                PreviousCalls = _db.InterventieCalls
-                    .Where(c => c.InterventieId == _existingInterventie.Id)
-                    .OrderByDescending(c => c.StartCall)
-                    .ToList();
-            }
+                PreviousCalls = LoadCallsForInterventie(_existingInterventie.Id);
 
             _importantWarningActive = false;
             _nonImportantWarningActive = false;
@@ -729,6 +800,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             _importantWarningActive = false;
             _nonImportantWarningActive = false;
             _cancelWarningActive = false;
+            _copyWarningActive = false;
             _pendingCallToLoad = null;
             StatusMessage = "";
 
