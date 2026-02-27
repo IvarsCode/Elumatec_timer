@@ -52,7 +52,6 @@
                         VerticalAlignment="Center"
                         Spacing="10">
 
-                <!-- Always show status message when there is one, even in editing mode (e.g. cancel warning) -->
                 <Border Background="{Binding StatusBackground}"
                         BorderBrush="{Binding StatusBorderBrush}"
                         BorderThickness="1"
@@ -121,7 +120,6 @@
                             </DataTemplate>
                         </AutoCompleteBox.ItemTemplate>
                     </AutoCompleteBox>
-                    <!-- Always read-only for prefilled — bedrijf cannot be edited -->
                     <TextBlock Text="{Binding Bedrijfsnaam}"
                                IsVisible="{Binding IsPrefilled}"
                                Padding="8"
@@ -148,7 +146,6 @@
                             </DataTemplate>
                         </AutoCompleteBox.ItemTemplate>
                     </AutoCompleteBox>
-                    <!-- Always read-only for prefilled — machine cannot be edited -->
                     <TextBlock Text="{Binding Machine}"
                                IsVisible="{Binding IsPrefilled}"
                                Padding="8"
@@ -283,7 +280,7 @@
                              Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
-                <!-- Copy button aligned to right edge of fields -->
+                <!-- Copy button -->
                 <Button Command="{Binding KopieerInterneNaarExterneCommand}"
                         HorizontalAlignment="Right"
                         Background="#E3F2FD"
@@ -302,7 +299,6 @@
                                   Foreground="#1565C0"/>
                     </StackPanel>
                 </Button>
-
 
                 <!-- Externe notities with save button -->
                 <StackPanel>
@@ -395,7 +391,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Confirmation Overlay -->
+        <!-- New Call Confirmation Overlay -->
         <Grid Grid.Row="0" Grid.RowSpan="3"
               IsVisible="{Binding ShowNewCallConfirmation}"
               Background="#80000000"
@@ -430,6 +426,67 @@
                                 Foreground="White"
                                 Command="{Binding DenyNewCallCommand}"/>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- PDF Archive Confirmation Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="3"
+              IsVisible="{Binding ShowPdfArchiveConfirmation}"
+              Background="#80000000"
+              ZIndex="200">
+            <Border Background="White"
+                    CornerRadius="8"
+                    Padding="30"
+                    Width="400"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 4 20 2 #40000000">
+                <StackPanel Spacing="24" VerticalAlignment="Center">
+
+                    <!-- Icon + title -->
+                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <PathIcon Data="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  Width="36"
+                                  Height="36"
+                                  Foreground="#4CAF50"
+                                  HorizontalAlignment="Center"/>
+                        <TextBlock Text="PDF goedgekeurd en interventie verwijderen?"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="320"/>
+                    </StackPanel>
+
+                    <!-- Explanation -->
+                    <TextBlock Text="Bij 'Ja' wordt de interventie als afgerond gemarkeerd en verdwijnt deze uit de lijst. Bij 'Nee' blijft u in dit scherm om eventuele aanpassingen te maken."
+                               FontSize="13"
+                               Opacity="0.65"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="340"/>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="16">
+                        <Button Content="Ja, afronden"
+                                Width="130"
+                                Padding="12,10"
+                                Background="#4CAF50"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Command="{Binding ConfirmArchiveCommand}"/>
+                        <Button Content="Nee, terug"
+                                Width="130"
+                                Padding="12,10"
+                                Background="#F44336"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Command="{Binding DenyArchiveCommand}"/>
+                    </StackPanel>
+
                 </StackPanel>
             </Border>
         </Grid>

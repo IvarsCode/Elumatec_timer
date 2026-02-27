@@ -113,6 +113,14 @@ namespace Elumatec.Tijdregistratie.ViewModels
             set { _showNewCallConfirmation = value; OnPropertyChanged(); }
         }
 
+
+        private bool _showPdfArchiveConfirmation;
+        public bool ShowPdfArchiveConfirmation
+        {
+            get => _showPdfArchiveConfirmation;
+            set { _showPdfArchiveConfirmation = value; OnPropertyChanged(); }
+        }
+
         public bool IsPrefilled { get; }
 
         public List<Bedrijf> BedrijvenSuggestions { get; }
@@ -341,6 +349,9 @@ namespace Elumatec.Tijdregistratie.ViewModels
         public ICommand SaveExterneNotitiesCommand { get; }
         public ICommand KopieerInterneNaarExterneCommand { get; }
 
+        public ICommand ConfirmArchiveCommand { get; }
+        public ICommand DenyArchiveCommand { get; }
+
         public InterventieFormViewModel(
             AppDbContext db,
             Medewerker currentUser,
@@ -471,6 +482,15 @@ namespace Elumatec.Tijdregistratie.ViewModels
             SaveContactpersoonTelefoonCommand = new RelayCommand(SaveField);
             SaveInterneNotitiesCommand = new RelayCommand(SaveField);
             SaveExterneNotitiesCommand = new RelayCommand(SaveField);
+
+            ConfirmArchiveCommand = new RelayCommand(ArchiveAndClose);
+            DenyArchiveCommand = new RelayCommand(() =>
+            {
+                // Stay in the form so the user can make corrections.
+                // The PDF-downloaded banner remains visible for reference.
+                ShowPdfArchiveConfirmation = false;
+            });
+
         }
 
         private List<InterventieCallDisplay> LoadCallsForInterventie(int interventieId)
@@ -896,15 +916,29 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 });
 
                 PdfDownloaded = true;
+
+                ShowPdfArchiveConfirmation = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error generating PDF: {ex.Message}");
                 StatusMessage = $"Fout bij PDF generatie: {ex.Message}";
                 StatusColor = "Red";
-                return;
             }
 
+            // Note: we no longer call CloseRequested here; the user decides
+            // via the confirmation dialog whether to close or stay.
+        }
+
+        private void ArchiveAndClose()
+        {
+            if (_existingInterventie != null)
+            {
+                _existingInterventie.Afgerond = 1;
+                _db.SaveChanges();
+            }
+
+            ShowPdfArchiveConfirmation = false;
             CloseRequested?.Invoke();
         }
 

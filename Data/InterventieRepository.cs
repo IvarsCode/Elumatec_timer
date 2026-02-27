@@ -21,6 +21,7 @@ namespace Elumatec.Tijdregistratie.Data
             {
                 var interventies = db.Interventies
                     .Include(i => i.Calls)
+                    .Where(i => i.Afgerond == 0)
                     .ToList();
 
                 return interventies
@@ -86,6 +87,7 @@ namespace Elumatec.Tijdregistratie.Data
             {
                 var query = db.Interventies
                     .Include(i => i.Calls)
+                    .Where(i => i.Afgerond == 0)
                     .AsQueryable();
 
                 switch (filter)
@@ -128,6 +130,82 @@ namespace Elumatec.Tijdregistratie.Data
             catch (Exception ex)
             {
                 Console.WriteLine($"[GetFiltered Interventies] Exception: {ex}");
+                return new List<Interventie>();
+            }
+        }
+
+        public static List<Interventie> GetAllArchived(AppDbContext db)
+        {
+            try
+            {
+                var interventies = db.Interventies
+                    .Include(i => i.Calls)
+                    .Where(i => i.Afgerond == 1)
+                    .ToList();
+
+                return interventies
+                    .OrderByDescending(i => GetMostRecentCallDate(i))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetAllArchived Interventies] Exception: {ex}");
+                return new List<Interventie>();
+            }
+        }
+
+        public static List<Interventie> GetFilteredArchived(
+            AppDbContext db,
+            InterventieFilterType filter,
+            string? searchText,
+            DateTimeOffset? fromDate,
+            DateTimeOffset? toDate)
+        {
+            try
+            {
+                var query = db.Interventies
+                    .Include(i => i.Calls)
+                    .Where(i => i.Afgerond == 1)
+                    .AsQueryable();
+
+                switch (filter)
+                {
+                    case InterventieFilterType.Bedrijfsnaam:
+                        if (!string.IsNullOrWhiteSpace(searchText))
+                            query = query.Where(i =>
+                                EF.Functions.Like(i.BedrijfNaam, $"%{searchText}%"));
+                        break;
+
+                    case InterventieFilterType.Machine:
+                        if (!string.IsNullOrWhiteSpace(searchText))
+                            query = query.Where(i =>
+                                EF.Functions.Like(i.Machine, $"%{searchText}%"));
+                        break;
+
+                    case InterventieFilterType.Datum:
+                        var allForDateFilter = query.ToList();
+
+                        if (fromDate.HasValue || toDate.HasValue)
+                        {
+                            allForDateFilter = allForDateFilter.Where(i =>
+                                i.Calls.Any(call =>
+                                    (!fromDate.HasValue || (call.StartCall.HasValue && call.StartCall.Value >= fromDate.Value.DateTime)) &&
+                                    (!toDate.HasValue || (call.EindCall.HasValue && call.EindCall.Value <= toDate.Value.DateTime))
+                                )).ToList();
+                        }
+
+                        return allForDateFilter
+                            .OrderBy(i => GetMostRecentCallDate(i))
+                            .ToList();
+                }
+
+                return query.ToList()
+                    .OrderByDescending(i => GetMostRecentCallDate(i))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[GetFilteredArchived Interventies] Exception: {ex}");
                 return new List<Interventie>();
             }
         }
