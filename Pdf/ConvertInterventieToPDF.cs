@@ -13,6 +13,7 @@ using Elumatec.Tijdregistratie.Models;
 using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Layout.Element;
 using iText.Layout.Properties;
+using iText.Kernel.Pdf.Canvas;
 
 namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 {
@@ -44,7 +45,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 using var writer = new PdfWriter(filePath);
                 using var pdf = new PdfDocument(writer);
                 using var doc = new Document(pdf, PageSize.A4);
-                doc.SetMargins(30, 30, 30, 30);
+                doc.SetMargins(30, 30, 50, 30);
 
                 PdfFont boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 PdfFont normalFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
@@ -166,12 +167,22 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     }
                 }
 
-                // ===== FOOTER =====
-                doc.Add(new Paragraph("\n"));
-                doc.Add(new Paragraph(
-                    "Voilàp Netherlands B.V. | Hoogeveenenweg 204 | 2913 LV Nieuwerkerk a/d IJssel | www.elumatec.com")
-                    .SetFontSize(8)
-                    .SetTextAlignment(TextAlignment.CENTER));
+                // Add some bottom padding so content doesn't hit footer
+                doc.Add(new Paragraph("  "));
+
+                // draw footer on every page
+                string footerText = "Voilàp Netherlands B.V. | Hoogeveenenweg 204 | 2913 LV Nieuwerkerk a/d IJssel | www.elumatec.com";
+                PdfFont footerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+                for (int p = 1; p <= pdf.GetNumberOfPages(); p++)
+                {
+                    var page = pdf.GetPage(p);
+                    var pageSize = page.GetPageSize();
+                    var pdfCanvas = new PdfCanvas(page);
+                    using var canvas = new Canvas(pdfCanvas, pageSize);
+                    canvas.SetFont(footerFont).SetFontSize(8);
+                    canvas.ShowTextAligned(footerText, pageSize.GetWidth() / 2, 20, TextAlignment.CENTER);
+                    canvas.Close();
+                }
             }
             catch (Exception ex)
             {
