@@ -15,21 +15,21 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Elumatec.Tijdregistratie
-build_property.ProjectDir = C:\Users\ivarh\OneDrive\Documenten\GitHub\Elumatec_timer\
+build_property.ProjectDir = C:\Users\joost\OneDrive\Documenten\GitHub\Elumatec_timer\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/TijdregistratieApp.axaml]
+[C:/Users/joost/OneDrive/Documenten/GitHub/Elumatec_timer/TijdregistratieApp.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/InterventieForm.axaml]
+[C:/Users/joost/OneDrive/Documenten/GitHub/Elumatec_timer/Views/InterventieForm.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/InterventieOverview.axaml]
+[C:/Users/joost/OneDrive/Documenten/GitHub/Elumatec_timer/Views/InterventieOverview.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/TijdregistratieWindow.axaml]
+[C:/Users/joost/OneDrive/Documenten/GitHub/Elumatec_timer/Views/TijdregistratieWindow.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
 
-[C:/Users/ivarh/OneDrive/Documenten/GitHub/Elumatec_timer/Views/UserSelection.axaml]
+[C:/Users/joost/OneDrive/Documenten/GitHub/Elumatec_timer/Views/UserSelection.axaml]
 build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

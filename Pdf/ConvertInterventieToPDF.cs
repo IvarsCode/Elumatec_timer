@@ -7,11 +7,12 @@ using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Borders;
-using iText.Layout.Element;
-using iText.Layout.Properties;
 using iText.IO.Font.Constants;
 using Elumatec.Tijdregistratie.Data;
 using Elumatec.Tijdregistratie.Models;
+using iText.Kernel.Pdf.Canvas.Draw;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 
 namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 {
@@ -55,12 +56,12 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     .SetBorder(Border.NO_BORDER));
 
                 header.AddCell(new Cell()
-                    .Add(new Paragraph("Contact:\nservice.nl@voilap.com\n+31 180 315 858").SetFontSize(11))
+                    .Add(new Paragraph("Contact:                       .\nservice.nl@voilap.com\n+31 180 315 858").SetFontSize(11))
                     .SetTextAlignment(TextAlignment.RIGHT)
                     .SetBorder(Border.NO_BORDER));
 
                 doc.Add(header);
-                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
+                doc.Add(CreateSeparator());
 
                 // ===== ALGEMEEN =====
                 doc.Add(new Paragraph("Algemeen").SetFont(boldFont).SetFontSize(20));
@@ -69,7 +70,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 AddRow(algemeen, "Uitvoerdatum:", DateTime.Now.ToString("dd-MM-yyyy HH:mm"), boldFont, normalFont);
                 AddRow(algemeen, "Type werkzaamheden:", "Service / interventie", boldFont, normalFont);
                 doc.Add(algemeen);
-                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
+                doc.Add(CreateSeparator());
 
                 // ===== ADRES =====
                 doc.Add(new Paragraph("Uitvoeringsadres").SetFont(boldFont).SetFontSize(20));
@@ -81,7 +82,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 AddRow(adres, "Land:", interventie.Land ?? "-", boldFont, normalFont);
                 doc.Add(adres);
 
-                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
+                doc.Add(CreateSeparator());
 
                 // ===== MACHINE =====
                 doc.Add(new Paragraph("Machine(s)").SetFont(boldFont).SetFontSize(20));
@@ -89,29 +90,29 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 AddRow(machineTbl, "Omschrijving:", interventie.Machine ?? "-", boldFont, normalFont);
                 AddRow(machineTbl, "Besturing:", "Elumatec", boldFont, normalFont);
                 doc.Add(machineTbl);
-                doc.Add(new Paragraph("-------------------------------------------------------------------------------------------------------------------------------------"));
+                doc.Add(CreateSeparator());
 
                 // ===== TIJDEN =====
                 doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont).SetFontSize(20));
-                Table tijden = new Table(new float[] { 25, 25, 10, 25, 15 }).UseAllAvailableWidth();
+                Table tijden = new Table(new float[] { 5, 25, 25, 10, 25 }).UseAllAvailableWidth();
+                tijden.AddHeaderCell(Header("Omschrijving", boldFont));
                 tijden.AddHeaderCell(Header("Begintijd", boldFont));
                 tijden.AddHeaderCell(Header("Eindtijd", boldFont));
                 tijden.AddHeaderCell(Header("Totaal", boldFont));
                 tijden.AddHeaderCell(Header("ContactPersoon", boldFont));
-                tijden.AddHeaderCell(Header("Omschrijving", boldFont));
                 int i = 0;
                 foreach (var call in calls)
                 {
                     i++;
                     // Safely handle nullable start/end times
-                    string startText = call.StartCall.HasValue ? call.StartCall.Value.ToString() : "-";
-                    string endText = call.EindCall.HasValue ? call.EindCall.Value.ToString() : "-";
+                    string startText = call.StartCall.HasValue ? call.StartCall.Value.ToString("dd-MM-yyyy HH:mm") : "-";
+                    string endText = call.EindCall.HasValue ? call.EindCall.Value.ToString("dd-MM-yyyy HH:mm") : "-";
 
                     string durationText;
                     if (call.StartCall.HasValue && call.EindCall.HasValue)
                     {
                         var duration = call.EindCall.Value - call.StartCall.Value;
-                        durationText = duration.ToString(@"hh\:mm\:ss");
+                        durationText = duration.ToString(@"hh\:mm");
                     }
                     else
                     {
@@ -120,11 +121,11 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 
                     string contactNaam = call.ContactpersoonNaam ?? "-";
 
+                    tijden.AddCell(i.ToString());
                     tijden.AddCell(startText);
                     tijden.AddCell(endText);
                     tijden.AddCell(durationText);
                     tijden.AddCell(contactNaam);
-                    tijden.AddCell("Call number: " + i);
                 }
                 doc.Add(tijden);
                 var total = TimeSpan.FromTicks(
@@ -219,5 +220,18 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
             new Cell()
                 .Add(new Paragraph(text).SetFont(bold))
                 .SetBackgroundColor(ColorConstants.LIGHT_GRAY);
+
+        private static LineSeparator CreateSeparator()
+        {
+            var solidLine = new SolidLine(1f);
+            solidLine.SetColor(ColorConstants.BLACK);
+
+            var line = new LineSeparator(solidLine);
+            line.SetWidth(UnitValue.CreatePercentValue(100));
+            line.SetMarginTop(10);
+            line.SetMarginBottom(10);
+
+            return line;
+        }
     }
 }
