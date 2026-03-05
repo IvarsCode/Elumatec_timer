@@ -563,9 +563,14 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 InterventieFormRepository.Save(
                     db: _db,
                     existing: _existingInterventie,
-                    bedrijfsnaam: currentBedrijfsnaam,
+                    bedrijfsnaam: _selectedBedrijf?.BedrijfNaam ?? currentBedrijfsnaam,
                     machine: currentMachine,
                     klantId: _selectedBedrijf?.Id ?? _existingInterventie!.KlantId,
+                    straatNaam: _selectedBedrijf?.StraatNaam,
+                    adresNummer: _selectedBedrijf?.AdresNummer,
+                    postcode: _selectedBedrijf?.Postcode,
+                    stad: _selectedBedrijf?.Stad,
+                    land: _selectedBedrijf?.Land,
                     medewerkerId: _currentUser.Id,
                     contactpersoonNaam: cpNaam,
                     contactpersoonEmail: cpEmail,
@@ -573,7 +578,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                     interneNotities: currentInterneNotities,
                     externeNotities: currentExterneNotities,
                     callStartTime: _callStartTime,
-                    callEndTime: callEndTime
+                    callEndTime: DateTime.Now
                 );
 
                 _timer.Stop();
@@ -678,9 +683,14 @@ namespace Elumatec.Tijdregistratie.ViewModels
             InterventieFormRepository.Save(
                 db: _db,
                 existing: _existingInterventie,
-                bedrijfsnaam: currentBedrijfsnaam,
+                bedrijfsnaam: _selectedBedrijf?.BedrijfNaam ?? currentBedrijfsnaam,
                 machine: currentMachine,
                 klantId: _selectedBedrijf?.Id ?? _existingInterventie!.KlantId,
+                straatNaam: _selectedBedrijf?.StraatNaam,
+                adresNummer: _selectedBedrijf?.AdresNummer,
+                postcode: _selectedBedrijf?.Postcode,
+                stad: _selectedBedrijf?.Stad,
+                land: _selectedBedrijf?.Land,
                 medewerkerId: _currentUser.Id,
                 contactpersoonNaam: cpNaam,
                 contactpersoonEmail: cpEmail,
@@ -690,7 +700,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 callStartTime: _callStartTime,
                 callEndTime: DateTime.Now
             );
-
             _timer.Stop();
 
             if (_existingInterventie != null)

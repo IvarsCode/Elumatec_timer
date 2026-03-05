@@ -76,11 +76,21 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 // ===== ADRES =====
                 doc.Add(new Paragraph("Uitvoeringsadres").SetFont(boldFont).SetFontSize(20));
                 Table adres = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
-                AddRow(adres, "Bedrijf:", interventie.BedrijfNaam ?? "-", boldFont, normalFont);
-                AddRow(adres, "Adress", (interventie.StraatNaam ?? "-") + " " + (interventie.AdresNummer ?? ""), boldFont, normalFont);
-                AddRow(adres, "Postcode:", interventie.Postcode ?? "-", boldFont, normalFont);
-                AddRow(adres, "Stad:", interventie.Stad ?? "-", boldFont, normalFont);
-                AddRow(adres, "Land:", interventie.Land ?? "-", boldFont, normalFont);
+                AddRow(adres, "Bedrijf:",
+                string.IsNullOrWhiteSpace(interventie.BedrijfNaam) ? "-" : interventie.BedrijfNaam,
+                boldFont, normalFont);
+                AddRow(adres, "Adres",
+                    $"{interventie.StraatNaam ?? "-"} {interventie.AdresNummer ?? ""}",
+                    boldFont, normalFont);
+                AddRow(adres, "Postcode:",
+                    string.IsNullOrWhiteSpace(interventie.Postcode) ? "-" : interventie.Postcode,
+                    boldFont, normalFont);
+                AddRow(adres, "Stad:",
+                    string.IsNullOrWhiteSpace(interventie.Stad) ? "-" : interventie.Stad,
+                    boldFont, normalFont);
+                AddRow(adres, "Land:",
+                    string.IsNullOrWhiteSpace(interventie.Land) ? "-" : interventie.Land,
+                    boldFont, normalFont);
                 doc.Add(adres);
 
                 doc.Add(CreateSeparator());
@@ -129,15 +139,15 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     tijden.AddCell(contactNaam);
                 }
                 doc.Add(tijden);
-                var total = TimeSpan.FromTicks(
+                var total = TimeSpan.FromMinutes(
                     calls
                         .Where(c => c.StartCall.HasValue && c.EindCall.HasValue)
-                        .Sum(c => (c.EindCall!.Value - c.StartCall!.Value).Ticks)
+                        .Sum(c => Math.Floor((c.EindCall!.Value - c.StartCall!.Value).TotalMinutes))
                 );
                 doc.Add(
                     new Paragraph(
                         "Totaal gewerkte tijd: " +
-                        total.ToString(@"hh\:mm\:ss")
+                        total.ToString(@"hh\:mm")
                     ).SetFont(boldFont)
                 );
 

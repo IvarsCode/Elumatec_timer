@@ -24,7 +24,7 @@ namespace Elumatec.Tijdregistratie.Data
                     .ToList();
 
                 return interventies
-                    .OrderByDescending(i => GetMostRecentCallDate(i))
+                    .OrderByDescending(GetMostRecentCallDate)
                     .ToList();
             }
             catch (Exception ex)
@@ -53,6 +53,18 @@ namespace Elumatec.Tijdregistratie.Data
         {
             try
             {
+                var bedrijf = db.Bedrijven
+                   .FirstOrDefault(b => b.BedrijfNaam == interventie.BedrijfNaam);
+
+                if (bedrijf != null)
+                {
+                    interventie.BedrijfNaam = bedrijf.BedrijfNaam;
+                    interventie.StraatNaam = bedrijf.StraatNaam;
+                    interventie.AdresNummer = bedrijf.AdresNummer;
+                    interventie.Postcode = bedrijf.Postcode;
+                    interventie.Stad = bedrijf.Stad;
+                    interventie.Land = bedrijf.Land;
+                }
                 db.Interventies.Add(interventie);
                 db.SaveChanges();
             }
@@ -92,37 +104,46 @@ namespace Elumatec.Tijdregistratie.Data
                 {
                     case InterventieFilterType.Bedrijfsnaam:
                         if (!string.IsNullOrWhiteSpace(searchText))
+                        {
                             query = query.Where(i =>
                                 EF.Functions.Like(i.BedrijfNaam, $"%{searchText}%"));
+                        }
                         break;
 
                     case InterventieFilterType.Machine:
                         if (!string.IsNullOrWhiteSpace(searchText))
+                        {
                             query = query.Where(i =>
                                 EF.Functions.Like(i.Machine, $"%{searchText}%"));
+                        }
                         break;
 
                     case InterventieFilterType.Datum:
-                        var allForDateFilter = query.ToList();
+
+                        var list = query.ToList();
 
                         if (fromDate.HasValue || toDate.HasValue)
                         {
-                            allForDateFilter = allForDateFilter.Where(i =>
+                            list = list.Where(i =>
                                 i.Calls.Any(call =>
-                                    (!fromDate.HasValue || (call.StartCall.HasValue && call.StartCall.Value >= fromDate.Value.DateTime)) &&
-                                    (!toDate.HasValue || (call.EindCall.HasValue && call.EindCall.Value <= toDate.Value.DateTime))
+                                    (!fromDate.HasValue ||
+                                     (call.StartCall.HasValue &&
+                                      call.StartCall.Value >= fromDate.Value.DateTime)) &&
+
+                                    (!toDate.HasValue ||
+                                     (call.EindCall.HasValue &&
+                                      call.EindCall.Value <= toDate.Value.DateTime))
                                 )).ToList();
                         }
 
-                        return allForDateFilter
-                            .OrderBy(i => GetMostRecentCallDate(i))
+                        return list
+                            .OrderByDescending(GetMostRecentCallDate)
                             .ToList();
                 }
 
-                var results = query.ToList();
-
-                return results
-                    .OrderByDescending(i => GetMostRecentCallDate(i))
+                return query
+                    .ToList()
+                    .OrderByDescending(GetMostRecentCallDate)
                     .ToList();
             }
             catch (Exception ex)
@@ -134,12 +155,12 @@ namespace Elumatec.Tijdregistratie.Data
 
         private static DateTime GetMostRecentCallDate(Interventie interventie)
         {
-            var mostRecentCall = interventie.Calls
+            var call = interventie.Calls
                 .Where(c => c.StartCall.HasValue)
                 .OrderByDescending(c => c.StartCall)
                 .FirstOrDefault();
 
-            return mostRecentCall?.StartCall ?? DateTime.MinValue;
+            return call?.StartCall ?? DateTime.MinValue;
         }
     }
 }
