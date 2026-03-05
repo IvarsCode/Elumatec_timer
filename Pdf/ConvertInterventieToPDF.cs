@@ -31,7 +31,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
             string outputFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string filePath = System.IO.Path.Combine(
                 outputFolder,
-                $"Werkbon_{DateTime.Now:yyyyMMdd_HHmmss}.pdf"
+                $"Werkbon_{DateTime.Now:yyyyMMdd_HHmm}.pdf"
             );
 
             try
@@ -96,7 +96,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 // ===== TIJDEN =====
                 doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont).SetFontSize(20));
                 Table tijden = new Table(new float[] { 5, 25, 25, 10, 25 }).UseAllAvailableWidth();
-                tijden.AddHeaderCell(Header("Omschrijving", boldFont));
+                tijden.AddHeaderCell(Header("#", boldFont));
                 tijden.AddHeaderCell(Header("Begintijd", boldFont));
                 tijden.AddHeaderCell(Header("Eindtijd", boldFont));
                 tijden.AddHeaderCell(Header("Totaal", boldFont));
@@ -147,12 +147,23 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 doc.Add(new Paragraph(" "));
 
                 // ===== NOTITIES =====
-                doc.Add(new Paragraph("Externe notities").SetFont(boldFont).SetFontSize(20));
-                var externeNotities = string.Join("\n", calls.Select(c => c.ExterneNotities ?? "-"));
-                doc.Add(new Paragraph(externeNotities).SetFont(normalFont));
+                doc.Add(new Paragraph("Gespreksnotities: ").SetFont(boldFont).SetFontSize(20));
+                for (int j = 0; j < calls.Count; j++)
+                {
+                    var call = calls[j];
+
+                    if (call == null) continue;
+
+                    doc.Add(CreateSeparator());
+                    doc.Add(new Paragraph($"Call number {j + 1} {call.StartCall?.ToString("dd-MM-yyyy HH:mm") ?? ""} {call.ContactpersoonNaam}").SetFont(boldFont).SetFontSize(14));
+                    doc.Add(new Paragraph(call.ExterneNotities ?? "-").SetFont(normalFont));
+                    doc.Add(new Paragraph(" "));
+
+                }
+                doc.Add(CreateSeparator());
                 doc.Add(new Paragraph(" "));
 
-                doc.Add(new Paragraph("Contact Personen informatie").SetFont(boldFont).SetFontSize(20));
+                doc.Add(new Paragraph("Contact Personen: ").SetFont(boldFont).SetFontSize(20));
                 List<string> Contactpersonen = new List<string>();
                 foreach (var call in calls)
                 {
@@ -160,17 +171,21 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     if (!Contactpersonen.Contains(contactNaam) && contactNaam != "-")
                     {
                         Contactpersonen.Add(contactNaam);
-                        doc.Add(new Paragraph(contactNaam).SetFont(boldFont).SetFontSize(14));
-                        doc.Add(new Paragraph("Telefoonnummer: " + (call.ContactpersoonTelefoonNummer ?? "-")).SetFont(normalFont));
-                        doc.Add(new Paragraph("Email: " + (call.ContactpersoonEmail ?? "-")).SetFont(normalFont));
+                        doc.Add(new Paragraph(contactNaam).SetFont(boldFont).SetFontSize(11));
+                        if (call.ContactpersoonTelefoonNummer != null)
+                        {
+                            doc.Add(new Paragraph("Telefoonnummer: " + call.ContactpersoonTelefoonNummer).SetFont(normalFont));
+                        }
+                        if (call.ContactpersoonEmail != null)
+                        {
+                            doc.Add(new Paragraph("Email: " + call.ContactpersoonEmail).SetFont(normalFont));
+                        }
                         doc.Add(new Paragraph(" "));
                     }
                 }
 
-                // Add some bottom padding so content doesn't hit footer
                 doc.Add(new Paragraph("  "));
 
-                // draw footer on every page
                 string footerText = "Voilàp Netherlands B.V. | Hoogeveenenweg 204 | 2913 LV Nieuwerkerk a/d IJssel | www.elumatec.com";
                 PdfFont footerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
                 for (int p = 1; p <= pdf.GetNumberOfPages(); p++)
@@ -178,6 +193,12 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     var page = pdf.GetPage(p);
                     var pageSize = page.GetPageSize();
                     var pdfCanvas = new PdfCanvas(page);
+
+                    pdfCanvas.SetLineWidth(0.5f);
+                    pdfCanvas.MoveTo(40, 35);
+                    pdfCanvas.LineTo(pageSize.GetWidth() - 40, 35);
+                    pdfCanvas.Stroke();
+
                     using var canvas = new Canvas(pdfCanvas, pageSize);
                     canvas.SetFont(footerFont).SetFontSize(8);
                     canvas.ShowTextAligned(footerText, pageSize.GetWidth() / 2, 20, TextAlignment.CENTER);
