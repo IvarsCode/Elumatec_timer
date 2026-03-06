@@ -90,7 +90,10 @@ namespace Elumatec.Tijdregistratie.ViewModels
             set { _showNieuweCallButton = value; OnPropertyChanged(); }
         }
 
-        public bool FieldsEditable => CurrentlyLoadedCall != null || (!IsEditingMode && !ShowNewCallConfirmation);
+        // IsArchived: true when the interventie has been marked as completed
+        public bool IsArchived => _existingInterventie?.Afgerond == 1;
+
+        public bool FieldsEditable => !IsArchived && (CurrentlyLoadedCall != null || (!IsEditingMode && !ShowNewCallConfirmation));
         public bool IsReadOnly => !FieldsEditable;
 
         // Dirty tracking
@@ -112,7 +115,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
             get => _showNewCallConfirmation;
             set { _showNewCallConfirmation = value; OnPropertyChanged(); }
         }
-
 
         private bool _showPdfArchiveConfirmation;
         public bool ShowPdfArchiveConfirmation
@@ -200,6 +202,88 @@ namespace Elumatec.Tijdregistratie.ViewModels
             _ => "#C62828"
         };
 
+
+        private string _emailValidationError = "";
+        public string EmailValidationError
+        {
+            get => _emailValidationError;
+            private set { _emailValidationError = value; OnPropertyChanged(); OnPropertyChanged(nameof(EmailValidationVisible)); }
+        }
+        public bool EmailValidationVisible => !string.IsNullOrEmpty(_emailValidationError);
+
+        private string _telefoonValidationError = "";
+        public string TelefoonValidationError
+        {
+            get => _telefoonValidationError;
+            private set { _telefoonValidationError = value; OnPropertyChanged(); OnPropertyChanged(nameof(TelefoonValidationVisible)); }
+        }
+        public bool TelefoonValidationVisible => !string.IsNullOrEmpty(_telefoonValidationError);
+
+
+        private static string ValidateEmail(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+
+            int atIndex = value.IndexOf('@');
+            int lastAt = value.LastIndexOf('@');
+
+            if (atIndex < 0)
+                return "E-mailadres moet een '@' bevatten.";
+            if (atIndex != lastAt)
+                return "E-mailadres mag maar één '@' bevatten.";
+
+            string local = value.Substring(0, atIndex);
+            string domain = value.Substring(atIndex + 1);
+
+            if (local.Length == 0)
+                return "Er moet tekst voor de '@' staan.";
+            if (local.StartsWith('.'))
+                return "Het deel voor '@' mag niet beginnen met een punt.";
+            if (local.EndsWith('.'))
+                return "Het deel voor '@' mag niet eindigen met een punt.";
+            if (local.Contains(".."))
+                return "Het deel voor '@' mag geen twee opeenvolgende punten bevatten.";
+
+            if (!domain.Contains('.'))
+                return "Er moet minimaal één '.' na de '@' staan.";
+            if (domain.StartsWith('.'))
+                return "Het deel na '@' mag niet beginnen met een punt.";
+            if (domain.EndsWith('.'))
+                return "Het deel na '@' mag niet eindigen met een punt.";
+            if (domain.Contains(".."))
+                return "Het deel na '@' mag geen twee opeenvolgende punten bevatten.";
+
+            return "";
+        }
+
+        private static string ValidateTelefoon(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+
+            foreach (char c in value)
+            {
+                if (!char.IsDigit(c) && c != '+')
+                    return "Telefoonnummer mag alleen cijfers en een '+' bevatten.";
+            }
+
+            if (value.IndexOf('+') > 0)
+                return "Het '+'-teken mag alleen aan het begin staan.";
+
+            int digitCount = value.Count(char.IsDigit);
+            if (digitCount < 8)
+                return "Telefoonnummer moet minimaal 8 cijfers bevatten.";
+            if (digitCount > 13)
+                return "Telefoonnummer mag maximaal 13 cijfers bevatten.";
+
+            return "";
+        }
+
+        ///Returns true when both fields either pass validation or are empty.
+        public bool ContactFieldsValid =>
+            string.IsNullOrEmpty(EmailValidationError) &&
+            string.IsNullOrEmpty(TelefoonValidationError);
+
+
         private string _contactpersoonNaam = "";
         public string ContactpersoonNaam
         {
@@ -220,6 +304,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             set
             {
                 _contactpersoonEmail = value;
+                EmailValidationError = ValidateEmail(value.Trim());
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ContactpersoonEmailDirty));
                 UpdateStatusAfterWarning();
@@ -233,6 +318,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             set
             {
                 _contactpersoonTelefoon = value;
+                TelefoonValidationError = ValidateTelefoon(value.Trim());
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ContactpersoonTelefoonDirty));
                 UpdateStatusAfterWarning();
@@ -348,7 +434,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
         public ICommand SaveInterneNotitiesCommand { get; }
         public ICommand SaveExterneNotitiesCommand { get; }
         public ICommand KopieerInterneNaarExterneCommand { get; }
-
         public ICommand ConfirmArchiveCommand { get; }
         public ICommand DenyArchiveCommand { get; }
 
@@ -418,7 +503,16 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 TotalTimeDisplay = _totalTime.Add(_currentCallTime).ToString(@"hh\:mm\:ss");
             };
 
-            if (callToLoad == null)
+            // Archived interventies open read-only; no timer, no new-call prompt
+            if (IsArchived)
+            {
+                IsEditingMode = true;
+                ShowNieuweCallButton = false;
+                // If no specific call was requested, load the most recent one for display
+                if (callToLoad == null && PreviousCalls.Any())
+                    LoadCallData(PreviousCalls.First().Call);
+            }
+            else if (callToLoad == null)
             {
                 if (IsPrefilled)
                 {
@@ -486,11 +580,8 @@ namespace Elumatec.Tijdregistratie.ViewModels
             ConfirmArchiveCommand = new RelayCommand(ArchiveAndClose);
             DenyArchiveCommand = new RelayCommand(() =>
             {
-                // Stay in the form so the user can make corrections.
-                // The PDF-downloaded banner remains visible for reference.
                 ShowPdfArchiveConfirmation = false;
             });
-
         }
 
         private List<InterventieCallDisplay> LoadCallsForInterventie(int interventieId)
@@ -510,6 +601,8 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
         private void KopieerInterneNaarExterne()
         {
+            if (IsArchived) return;
+
             if (!string.IsNullOrWhiteSpace(ExterneNotities) && !_copyWarningActive)
             {
                 _copyWarningActive = true;
@@ -525,6 +618,9 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
         public bool OnWindowCloseRequested()
         {
+            if (IsArchived)
+                return true;
+
             if (_cancelWarningActive)
                 return true;
 
@@ -534,9 +630,25 @@ namespace Elumatec.Tijdregistratie.ViewModels
             return false;
         }
 
+        /// Sets the status message to the current validation errors.
+        /// Call only when ContactFieldsValid is already known to be false.
+        private void ShowContactValidationError()
+        {
+            var errors = new List<string>();
+            if (!string.IsNullOrEmpty(EmailValidationError))
+                errors.Add($"E-mail: {EmailValidationError}");
+            if (!string.IsNullOrEmpty(TelefoonValidationError))
+                errors.Add($"Telefoon: {TelefoonValidationError}");
+
+            StatusMessage = string.Join(" | ", errors) + " Klik nogmaals om toch door te gaan zonder opslaan.";
+            StatusColor = "Red";
+        }
+
+
         private void SaveField()
         {
             if (CurrentlyLoadedCall == null) return;
+            if (IsArchived) return;
 
             InterventieFormRepository.UpdateCall(
                 db: _db,
@@ -570,7 +682,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 return;
             }
 
-            if (IsEditingMode && CurrentlyLoadedCall == null)
+            if (IsArchived || (IsEditingMode && CurrentlyLoadedCall == null))
             {
                 _timer.Stop();
                 CloseRequested?.Invoke();
@@ -584,11 +696,27 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
         private void StopAndSave()
         {
+            // Archived interventies cannot be saved
+            if (IsArchived) return;
+
             if (CurrentlyLoadedCall != null)
             {
                 _timer.Stop();
                 CloseRequested?.Invoke();
                 return;
+            }
+
+            // If contact fields are invalid, warn first; second click proceeds anyway
+            if (!ContactFieldsValid)
+            {
+                if (!_importantWarningActive)
+                {
+                    _importantWarningActive = true;
+                    ShowContactValidationError();
+                    return;
+                }
+                // Second click: clear the validation gate and fall through
+                _importantWarningActive = false;
             }
 
             var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
@@ -681,8 +809,31 @@ namespace Elumatec.Tijdregistratie.ViewModels
             if (display == null) return;
             var call = display.Call;
 
+            // Archived: just switch the displayed call, no saving logic needed
+            if (IsArchived)
+            {
+                LoadCallData(call);
+                return;
+            }
+
             if (CurrentlyLoadedCall != null || IsEditingMode)
             {
+                LoadCallData(call);
+                return;
+            }
+
+            // If contact fields are invalid, warn first; second click on same call loads without saving
+            if (!ContactFieldsValid)
+            {
+                if (_pendingCallToLoad != display)
+                {
+                    _pendingCallToLoad = display;
+                    _importantWarningActive = true;
+                    ShowContactValidationError();
+                    return;
+                }
+                _importantWarningActive = false;
+                _pendingCallToLoad = null;
                 LoadCallData(call);
                 return;
             }
@@ -845,6 +996,13 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
             if (!_importantWarningActive && !_nonImportantWarningActive) return;
 
+            // If contact fields are now invalid, show that error instead of the fill-warning
+            if (!ContactFieldsValid)
+            {
+                ShowContactValidationError();
+                return;
+            }
+
             var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
             var currentMachine = (Machine ?? "").Trim();
             var currentExterneNotities = (ExterneNotities ?? "").Trim();
@@ -917,7 +1075,9 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
                 PdfDownloaded = true;
 
-                ShowPdfArchiveConfirmation = true;
+                // Only show the archive confirmation if not already archived
+                if (!IsArchived)
+                    ShowPdfArchiveConfirmation = true;
             }
             catch (Exception ex)
             {
@@ -925,9 +1085,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 StatusMessage = $"Fout bij PDF generatie: {ex.Message}";
                 StatusColor = "Red";
             }
-
-            // Note: we no longer call CloseRequested here; the user decides
-            // via the confirmation dialog whether to close or stay.
         }
 
         private void ArchiveAndClose()

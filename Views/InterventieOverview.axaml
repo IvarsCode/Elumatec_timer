@@ -4,7 +4,7 @@
 
     <Grid RowDefinitions="Auto,*" Margin="10">
 
-        <Grid ColumnDefinitions="Auto,Auto,300,Auto,Auto,Auto"
+        <Grid ColumnDefinitions="Auto,Auto,300,Auto,*,Auto"
               Grid.Row="0"
               VerticalAlignment="Top"
               ColumnSpacing="10">
@@ -35,14 +35,14 @@
             </Button>
 
             <!-- Filter label + dropdown -->
-            <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2">
-                <TextBlock Text="Filter" FontSize="12" Opacity="0.7" />
+            <StackPanel Grid.Column="1" Orientation="Vertical" Spacing="2" VerticalAlignment="Bottom">
+                <TextBlock Text="Filter" FontSize="12" Opacity="0.7"/>
                 <ComboBox Width="160"
                           ItemsSource="{Binding FilterTypes}"
-                          SelectedItem="{Binding SelectedFilter}" />
+                          SelectedItem="{Binding SelectedFilter}"/>
             </StackPanel>
 
-            <!-- Text search (fixed shorter width via column definition of 300) -->
+            <!-- Text search -->
             <TextBox Grid.Column="2"
                      Watermark="Zoeken..."
                      Text="{Binding SearchText, Mode=TwoWay}"
@@ -54,43 +54,31 @@
                         Orientation="Vertical"
                         Spacing="4"
                         IsVisible="{Binding IsDateSearch}"
-                        VerticalAlignment="Bottom">
+                        VerticalAlignment="Bottom"
+                        ClipToBounds="False">
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <TextBlock VerticalAlignment="Center" Text="Van:" />
-                    <DatePicker SelectedDate="{Binding FromDate}" />
+                    <TextBlock VerticalAlignment="Center" Text="Van:" Width="28"/>
+                    <DatePicker SelectedDate="{Binding FromDate}" Width="250"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="4">
-                    <TextBlock VerticalAlignment="Center" Text="Tot: " />
-                    <DatePicker SelectedDate="{Binding ToDate}" />
+                    <TextBlock VerticalAlignment="Center" Text="Tot:" Width="28"/>
+                    <DatePicker SelectedDate="{Binding ToDate}" Width="250"/>
                 </StackPanel>
             </StackPanel>
 
-            <!-- Archive toggle button -->
+            <!-- Archive toggle button — same style as user button, placed after search -->
             <Button Grid.Column="3"
                     Command="{Binding ToggleArchiefCommand}"
                     VerticalAlignment="Bottom"
-                    Padding="14,10"
+                    Background="#F0F0F0"
+                    BorderBrush="Gray"
+                    BorderThickness="1"
                     CornerRadius="4"
-                    BorderThickness="2">
-                <Button.Styles>
-                    <!-- Active (viewing archief): filled dark style -->
-                    <Style Selector="Button">
-                        <Setter Property="Background" Value="#455A64"/>
-                        <Setter Property="Foreground" Value="White"/>
-                        <Setter Property="BorderBrush" Value="#455A64"/>
-                    </Style>
-                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                        <Setter Property="Background" Value="Transparent"/>
-                    </Style>
-                    <Style Selector="Button:pointerover">
-                        <Setter Property="Foreground" Value="#455A64"/>
-                    </Style>
-                </Button.Styles>
+                    Padding="6">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <PathIcon Data="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
                               Width="16"
-                              Height="16"
-                              Foreground="{Binding $parent[Button].Foreground}"/>
+                              Height="16"/>
                     <TextBlock Text="{Binding ArchiefButtonLabel}"
                                VerticalAlignment="Center"
                                FontWeight="SemiBold"
@@ -99,7 +87,7 @@
             </Button>
 
             <!-- Spacer -->
-            <Grid Grid.Column="4" Width="0"/>
+            <Grid Grid.Column="4"/>
 
             <!-- User button -->
             <StackPanel Grid.Column="5" Orientation="Vertical" Spacing="6">
@@ -111,7 +99,7 @@
                         Padding="6"
                         HorizontalAlignment="Center">
                     <TextBlock FontWeight="SemiBold"
-                               Text="{Binding GebruikerNaam, StringFormat=Gebruiker: {0}}" />
+                               Text="{Binding GebruikerNaam, StringFormat=Gebruiker: {0}}"/>
                 </Button>
             </StackPanel>
         </Grid>

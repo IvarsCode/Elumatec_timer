@@ -36,7 +36,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Nieuwe call starten button (only visible in editing mode) -->
+            <!-- Nieuwe call starten button (only visible in editing mode, not archived) -->
             <Button Grid.Column="0"
                     Content="Nieuwe call starten"
                     Command="{Binding NieuweCallStartenCommand}"
@@ -51,6 +51,19 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Spacing="10">
+
+                <!-- Archived banner -->
+                <Border Background="#FFF3E0"
+                        BorderBrush="#FF9800"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        IsVisible="{Binding IsArchived}">
+                    <TextBlock Text="Deze interventie is afgerond en kan niet meer worden bewerkt."
+                               Foreground="#E65100"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center"/>
+                </Border>
 
                 <Border Background="{Binding StatusBackground}"
                         BorderBrush="{Binding StatusBorderBrush}"
@@ -172,9 +185,15 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Contactpersoon Email with save button -->
+                <!-- Contactpersoon Email with validation error + save button -->
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Email" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding EmailValidationError}"
+                               IsVisible="{Binding EmailValidationVisible}"
+                               Foreground="#C62828"
+                               FontSize="11"
+                               Margin="0,0,0,2"
+                               TextWrapping="Wrap"/>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0"
                                  Text="{Binding ContactpersoonEmail}"
@@ -191,9 +210,15 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Contactpersoon Telefoon with save button -->
+                <!-- Contactpersoon Telefoon with validation error + save button -->
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Telefoon" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TelefoonValidationError}"
+                               IsVisible="{Binding TelefoonValidationVisible}"
+                               Foreground="#C62828"
+                               FontSize="11"
+                               Margin="0,0,0,2"
+                               TextWrapping="Wrap"/>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0"
                                  Text="{Binding ContactpersoonTelefoon}"
@@ -280,9 +305,10 @@
                              Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
-                <!-- Copy button -->
+                <!-- Copy button: hidden when archived -->
                 <Button Command="{Binding KopieerInterneNaarExterneCommand}"
                         HorizontalAlignment="Right"
+                        IsVisible="{Binding !IsArchived}"
                         Background="#E3F2FD"
                         BorderBrush="#90CAF9"
                         BorderThickness="1"
@@ -337,6 +363,7 @@
                         Background="#F44336"
                         Foreground="White"
                         Padding="12,8"/>
+                <!-- Opslaan hidden when archived -->
                 <Button Content="Opslaan"
                         Command="{Binding StopAndSaveCommand}"
                         IsVisible="{Binding !IsEditingMode}"
