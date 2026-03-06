@@ -24,6 +24,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
         public ICommand TerugCommand { get; }
         public ICommand NieuweInterventieCommand { get; }
         public ICommand OpenInterventieCommand { get; }
+        public ICommand ToggleArchiefCommand { get; }
 
         // Navigation callbacks (set by MainViewModel)
         public Action? TerugRequested { get; set; }
@@ -35,7 +36,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
             _db = db;
             _currentUser = currentUser;
 
-            // Commands trigger the callbacks
             TerugCommand = new RelayCommand(() => TerugRequested?.Invoke());
             NieuweInterventieCommand = new RelayCommand(() => NieuweInterventieRequested?.Invoke());
             OpenInterventieCommand = new RelayCommand<InterventieItemViewModel>(item =>
@@ -43,20 +43,38 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 if (item != null)
                     OpenInterventieRequested?.Invoke(item.Interventie);
             });
+            ToggleArchiefCommand = new RelayCommand(() =>
+            {
+                ShowArchief = !ShowArchief;
+            });
 
             LoadInterventies();
         }
+
+        private bool _showArchief = false;
+        public bool ShowArchief
+        {
+            get => _showArchief;
+            set
+            {
+                _showArchief = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ArchiefButtonLabel));
+                OnPropertyChanged(nameof(ShowNieuweInterventieButton));
+                LoadInterventies();
+            }
+        }
+
+        public string ArchiefButtonLabel => ShowArchief ? "Actieve interventies" : "Archief";
+        public bool ShowNieuweInterventieButton => !ShowArchief;
 
         private void LoadInterventies()
         {
             Interventies.Clear();
 
-            var result = InterventieRepository.GetFiltered(
-                _db,
-                SelectedFilter,
-                SearchText,
-                FromDate,
-                ToDate);
+            var result = ShowArchief
+                ? InterventieRepository.GetFilteredArchived(_db, SelectedFilter, SearchText, FromDate, ToDate)
+                : InterventieRepository.GetFiltered(_db, SelectedFilter, SearchText, FromDate, ToDate);
 
             foreach (var interventie in result)
                 Interventies.Add(new InterventieItemViewModel(interventie));

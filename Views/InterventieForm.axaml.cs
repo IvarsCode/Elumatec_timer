@@ -15,10 +15,10 @@ namespace Elumatec.Tijdregistratie.Views
         private void CallButton_PointerEntered(object? sender, PointerEventArgs e)
         {
             if (sender is Button button &&
-                button.DataContext is InterventieCall call &&
+                button.DataContext is InterventieCallDisplay display &&
                 DataContext is InterventieFormViewModel viewModel)
             {
-                viewModel.HoveredCall = call;
+                viewModel.HoveredCall = display;
             }
         }
 

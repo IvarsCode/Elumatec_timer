@@ -36,7 +36,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Nieuwe call starten button (only visible in editing mode) -->
+            <!-- Nieuwe call starten button (only visible in editing mode, not archived) -->
             <Button Grid.Column="0"
                     Content="Nieuwe call starten"
                     Command="{Binding NieuweCallStartenCommand}"
@@ -52,7 +52,19 @@
                         VerticalAlignment="Center"
                         Spacing="10">
 
-                <!-- Always show status message when there is one, even in editing mode (e.g. cancel warning) -->
+                <!-- Archived banner -->
+                <Border Background="#FFF3E0"
+                        BorderBrush="#FF9800"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        IsVisible="{Binding IsArchived}">
+                    <TextBlock Text="Deze interventie is afgerond en kan niet meer worden bewerkt."
+                               Foreground="#E65100"
+                               FontWeight="SemiBold"
+                               TextAlignment="Center"/>
+                </Border>
+
                 <Border Background="{Binding StatusBackground}"
                         BorderBrush="{Binding StatusBorderBrush}"
                         BorderThickness="1"
@@ -121,7 +133,6 @@
                             </DataTemplate>
                         </AutoCompleteBox.ItemTemplate>
                     </AutoCompleteBox>
-                    <!-- Always read-only for prefilled — bedrijf cannot be edited -->
                     <TextBlock Text="{Binding Bedrijfsnaam}"
                                IsVisible="{Binding IsPrefilled}"
                                Padding="8"
@@ -148,7 +159,6 @@
                             </DataTemplate>
                         </AutoCompleteBox.ItemTemplate>
                     </AutoCompleteBox>
-                    <!-- Always read-only for prefilled — machine cannot be edited -->
                     <TextBlock Text="{Binding Machine}"
                                IsVisible="{Binding IsPrefilled}"
                                Padding="8"
@@ -175,9 +185,15 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Contactpersoon Email with save button -->
+                <!-- Contactpersoon Email with validation error + save button -->
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Email" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding EmailValidationError}"
+                               IsVisible="{Binding EmailValidationVisible}"
+                               Foreground="#C62828"
+                               FontSize="11"
+                               Margin="0,0,0,2"
+                               TextWrapping="Wrap"/>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0"
                                  Text="{Binding ContactpersoonEmail}"
@@ -194,9 +210,15 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Contactpersoon Telefoon with save button -->
+                <!-- Contactpersoon Telefoon with validation error + save button -->
                 <StackPanel>
                     <TextBlock Text="Contactpersoon Telefoon" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TelefoonValidationError}"
+                               IsVisible="{Binding TelefoonValidationVisible}"
+                               Foreground="#C62828"
+                               FontSize="11"
+                               Margin="0,0,0,2"
+                               TextWrapping="Wrap"/>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox Grid.Column="0"
                                  Text="{Binding ContactpersoonTelefoon}"
@@ -283,6 +305,27 @@
                              Classes.readonly-style="{Binding IsReadOnly}"/>
                 </StackPanel>
 
+                <!-- Copy button: hidden when archived -->
+                <Button Command="{Binding KopieerInterneNaarExterneCommand}"
+                        HorizontalAlignment="Right"
+                        IsVisible="{Binding !IsArchived}"
+                        Background="#E3F2FD"
+                        BorderBrush="#90CAF9"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12,8">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Kopieer"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"/>
+                        <PathIcon Data="M12 4 L12 18 M5 12 L12 20 L19 12"
+                                  Width="20"
+                                  Height="24"
+                                  Foreground="#1565C0"/>
+                    </StackPanel>
+                </Button>
+
                 <!-- Externe notities with save button -->
                 <StackPanel>
                     <Grid ColumnDefinitions="*,Auto">
@@ -320,6 +363,7 @@
                         Background="#F44336"
                         Foreground="White"
                         Padding="12,8"/>
+                <!-- Opslaan hidden when archived -->
                 <Button Content="Opslaan"
                         Command="{Binding StopAndSaveCommand}"
                         IsVisible="{Binding !IsEditingMode}"
@@ -353,15 +397,17 @@
                            Foreground="White"
                            HorizontalAlignment="Center"/>
                 <Border Height="1" Background="#B0FFFFFF"/>
-                <Grid ColumnDefinitions="140,120,*">
+                <Grid ColumnDefinitions="140,120,140,*">
                     <TextBlock Grid.Column="0" Text="Datum" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="1" Text="Tijd" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
-                    <TextBlock Grid.Column="2" Text="Contactpersoon" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="1" Text="Duur" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="2" Text="Medewerker" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
+                    <TextBlock Grid.Column="3" Text="Contactpersoon" FontSize="11" Foreground="#B0FFFFFF" FontWeight="SemiBold"/>
                 </Grid>
-                <Grid ColumnDefinitions="140,120,*">
+                <Grid ColumnDefinitions="140,120,140,*">
                     <TextBlock Grid.Column="0" Text="{Binding StartCall, StringFormat='{}{0:dd-MM-yy}'}" FontSize="14" Foreground="White"/>
-                    <TextBlock Grid.Column="1" Text="{Binding StartCall, StringFormat='{}{0:HH:mm}'}" FontSize="14" Foreground="White"/>
-                    <TextBlock Grid.Column="2" Text="{Binding ContactpersoonNaam}" FontSize="14" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1" Text="{Binding CallDuration}" FontSize="14" Foreground="White"/>
+                    <TextBlock Grid.Column="2" Text="{Binding MedewerkerNaam}" FontSize="14" Foreground="White" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="3" Text="{Binding ContactpersoonNaam}" FontSize="14" Foreground="White" TextTrimming="CharacterEllipsis"/>
                 </Grid>
                 <TextBlock Text="{Binding InterneNotities}"
                            TextWrapping="Wrap"
@@ -372,7 +418,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Confirmation Overlay -->
+        <!-- New Call Confirmation Overlay -->
         <Grid Grid.Row="0" Grid.RowSpan="3"
               IsVisible="{Binding ShowNewCallConfirmation}"
               Background="#80000000"
@@ -407,6 +453,67 @@
                                 Foreground="White"
                                 Command="{Binding DenyNewCallCommand}"/>
                     </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- PDF Archive Confirmation Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="3"
+              IsVisible="{Binding ShowPdfArchiveConfirmation}"
+              Background="#80000000"
+              ZIndex="200">
+            <Border Background="White"
+                    CornerRadius="8"
+                    Padding="30"
+                    Width="400"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 4 20 2 #40000000">
+                <StackPanel Spacing="24" VerticalAlignment="Center">
+
+                    <!-- Icon + title -->
+                    <StackPanel Spacing="8" HorizontalAlignment="Center">
+                        <PathIcon Data="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  Width="36"
+                                  Height="36"
+                                  Foreground="#4CAF50"
+                                  HorizontalAlignment="Center"/>
+                        <TextBlock Text="PDF goedgekeurd en interventie verwijderen?"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="320"/>
+                    </StackPanel>
+
+                    <!-- Explanation -->
+                    <TextBlock Text="Bij 'Ja' wordt de interventie als afgerond gemarkeerd en verdwijnt deze uit de lijst. Bij 'Nee' blijft u in dit scherm om eventuele aanpassingen te maken."
+                               FontSize="13"
+                               Opacity="0.65"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="340"/>
+
+                    <!-- Buttons -->
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="16">
+                        <Button Content="Ja, afronden"
+                                Width="130"
+                                Padding="12,10"
+                                Background="#4CAF50"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Command="{Binding ConfirmArchiveCommand}"/>
+                        <Button Content="Nee, terug"
+                                Width="130"
+                                Padding="12,10"
+                                Background="#F44336"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                Command="{Binding DenyArchiveCommand}"/>
+                    </StackPanel>
+
                 </StackPanel>
             </Border>
         </Grid>
