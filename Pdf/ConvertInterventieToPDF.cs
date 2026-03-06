@@ -19,6 +19,14 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 {
     class ServiceBonPdf
     {
+        // A4 usable width = 595 - 30 (left) - 30 (right) = 535pt
+        // Tijden table: { 5%, 25%, 25%, 10%, 25% } of 535pt
+        //   #         =  5% =  26.75pt
+        //   Begintijd = 25% = 133.75pt
+        //   Eindtijd starts at 30% = 160.5pt  ← this is our column 2 alignment point
+        private const float COL1 = 160f;
+        private const float COL2 = 375f;
+
         private readonly AppDbContext _db;
 
         public ServiceBonPdf(AppDbContext db)
@@ -56,63 +64,27 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 
                 // ===== HEADER =====
 
-                Table header = new Table(new float[] { 50, 50, 50, 50, 50, 50, 10 }).UseAllAvailableWidth();
+                Table header = new Table(new float[] { COL1 + COL2 - 120f, 120f });
                 header.SetBorder(Border.NO_BORDER);
 
-                // Left: WERKBON title
                 header.AddCell(
                     new Cell()
-                        .Add(new Paragraph("WERKBON")
-                            .SetFont(boldFont)
-                            .SetFontSize(11))
+                        .Add(new Paragraph("WERKBON").SetFont(boldFont).SetFontSize(14))
                         .SetBorder(Border.NO_BORDER)
                         .SetVerticalAlignment(VerticalAlignment.TOP)
                 );
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
-                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
 
-                // Right: Contact info — left-aligned text, right-aligned cell
                 Cell contactCell = new Cell()
                     .SetBorder(Border.NO_BORDER)
                     .SetVerticalAlignment(VerticalAlignment.TOP)
-                    .SetTextAlignment(TextAlignment.RIGHT);
+                    .SetTextAlignment(TextAlignment.LEFT);
 
                 contactCell.Add(new Paragraph("Contact:")
-                    .SetFont(boldFont)
-                    .SetFontSize(11)
-                    .SetTextAlignment(TextAlignment.LEFT)
-                    .SetMarginBottom(0));
-
+                    .SetFont(boldFont).SetFontSize(8).SetMarginBottom(0));
                 contactCell.Add(new Paragraph("service.nl@voilap.com")
-                    .SetFont(normalFont)
-                    .SetFontSize(8)
-                    .SetTextAlignment(TextAlignment.LEFT)
-                    .SetMargin(0));
-
+                    .SetFont(normalFont).SetFontSize(8).SetMargin(0));
                 contactCell.Add(new Paragraph("+31 180 315 858")
-                    .SetFont(normalFont)
-                    .SetFontSize(8)
-                    .SetTextAlignment(TextAlignment.LEFT)
-                    .SetMargin(0));
+                    .SetFont(normalFont).SetFontSize(8).SetMargin(0));
 
                 header.AddCell(contactCell);
 
@@ -121,39 +93,32 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 
                 // ===== ONLINE SUPPORT =====
 
-                doc.Add(new Paragraph("ONLINE SUPPORT")
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
+                doc.Add(new Paragraph("ONLINE SUPPORT").SetFont(boldFont).SetFontSize(10));
 
-                Table algemeen = new Table(new float[] { 40, 60 }).UseAllAvailableWidth();
-
+                Table algemeen = new Table(new float[] { COL1, COL2 });
                 AddRow(algemeen, "Geholpen door:", medewerkerNaam, boldFont, normalFont);
-                AddRow(algemeen, "Uitvoerdatum:", DateTime.Now.ToString("dd-MM-yyyy HH:mm"), boldFont, normalFont);
+                AddRow(algemeen, "Uitvoerdatum:",
+                    DateTime.Now.ToString("dd-MM-yyyy") + "\u00A0" + DateTime.Now.ToString("HH:mm"),
+                    boldFont, normalFont);
 
                 doc.Add(algemeen);
                 doc.Add(CreateSeparator());
 
                 // ===== BEDRIJF =====
 
-                doc.Add(new Paragraph("Bedrijf:")
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
+                doc.Add(new Paragraph("Bedrijf:").SetFont(boldFont).SetFontSize(10));
 
-                Table adres = new Table(new float[] { 40, 60 }).UseAllAvailableWidth();
-
+                Table adres = new Table(new float[] { COL1, COL2 });
                 AddRow(adres, "Naam:",
                     string.IsNullOrWhiteSpace(interventie.BedrijfNaam) ? "-" : interventie.BedrijfNaam,
                     boldFont, normalFont);
-
                 AddRow(adres, "Adres:",
                     $"{interventie.StraatNaam ?? "-"} {interventie.AdresNummer ?? ""}",
                     boldFont, normalFont);
-
                 AddRow(adres, "Plaats:",
                     (string.IsNullOrWhiteSpace(interventie.Postcode) ? "-" : interventie.Postcode)
-                    + (string.IsNullOrWhiteSpace(interventie.Stad) ? "" : $" {interventie.Stad}"),
+                    + (string.IsNullOrWhiteSpace(interventie.Stad) ? "" : $"\u00A0{interventie.Stad}"),
                     boldFont, normalFont);
-
                 AddRow(adres, "Land:",
                     string.IsNullOrWhiteSpace(interventie.Land) ? "-" : interventie.Land,
                     boldFont, normalFont);
@@ -163,19 +128,18 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 
                 // ===== MACHINE =====
 
-                doc.Add(new Paragraph($"Support verleent op:  {interventie.Machine ?? "-"}")
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
-
+                Table machine = new Table(new float[] { COL1, COL2 });
+                AddRow(machine, "Support verleend op:", interventie.Machine ?? "-", boldFont, normalFont);
+                doc.Add(machine);
                 doc.Add(CreateSeparator());
 
                 // ===== GEWERKTE TIJD =====
 
-                doc.Add(new Paragraph("Gewerkte tijd(en)")
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
+                doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont).SetFontSize(10));
 
-                Table tijden = new Table(new float[] { 5, 25, 25, 10, 25 }).UseAllAvailableWidth();
+                // Col widths chosen so that #(27) + Begintijd(133) = 160 = COL1
+                // meaning Eindtijd column edge aligns exactly with COL2 values above
+                Table tijden = new Table(new float[] { 27f, 133f, 133f, 54f, 188f });
 
                 tijden.AddHeaderCell(Header("#", boldFont));
                 tijden.AddHeaderCell(Header("Begintijd", boldFont));
@@ -189,11 +153,14 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 {
                     i++;
 
-                    string startText = call.StartCall?.ToString("dd-MM-yyyy HH:mm") ?? "-";
-                    string endText = call.EindCall?.ToString("dd-MM-yyyy HH:mm") ?? "-";
+                    string startText = call.StartCall.HasValue
+                        ? call.StartCall.Value.ToString("dd-MM-yyyy") + "\u00A0" + call.StartCall.Value.ToString("HH:mm")
+                        : "-";
+                    string endText = call.EindCall.HasValue
+                        ? call.EindCall.Value.ToString("dd-MM-yyyy") + "\u00A0" + call.EindCall.Value.ToString("HH:mm")
+                        : "-";
 
                     string durationText = "-";
-
                     if (call.StartCall.HasValue && call.EindCall.HasValue)
                     {
                         var duration = call.EindCall.Value - call.StartCall.Value;
@@ -202,11 +169,11 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 
                     string contactNaam = call.ContactpersoonNaam ?? "-";
 
-                    tijden.AddCell(new Paragraph(i.ToString()).SetFontSize(8));
-                    tijden.AddCell(new Paragraph(startText).SetFontSize(8));
-                    tijden.AddCell(new Paragraph(endText).SetFontSize(8));
-                    tijden.AddCell(new Paragraph(durationText).SetFontSize(8));
-                    tijden.AddCell(new Paragraph(contactNaam).SetFontSize(8));
+                    tijden.AddCell(new Cell().Add(new Paragraph(i.ToString()).SetFontSize(8)));
+                    tijden.AddCell(new Cell().Add(new Paragraph(startText).SetFontSize(8)));
+                    tijden.AddCell(new Cell().Add(new Paragraph(endText).SetFontSize(8)));
+                    tijden.AddCell(new Cell().Add(new Paragraph(durationText).SetFontSize(8)));
+                    tijden.AddCell(new Cell().Add(new Paragraph(contactNaam).SetFontSize(8)));
                 }
 
                 doc.Add(tijden);
@@ -217,17 +184,14 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                         .Sum(c => Math.Floor((c.EindCall!.Value - c.StartCall!.Value).TotalMinutes))
                 );
 
-                doc.Add(new Paragraph("Totaal gewerkte tijd: " + total.ToString(@"hh\:mm"))
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
+                Table totalRow = new Table(new float[] { COL1, COL2 });
+                AddRow(totalRow, "Totaal gewerkte tijd:", total.ToString(@"hh\:mm"), boldFont, boldFont);
+                doc.Add(totalRow);
 
                 // ===== NOTITIES =====
 
                 doc.Add(CreateSeparator());
-
-                doc.Add(new Paragraph("Gespreksnotities:")
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
+                doc.Add(new Paragraph("Gespreksnotities:").SetFont(boldFont).SetFontSize(10));
 
                 for (int j = 0; j < calls.Count; j++)
                 {
@@ -235,22 +199,21 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
 
                     doc.Add(CreateSeparator());
 
-                    doc.Add(new Paragraph($"Call {j + 1} {call.StartCall?.ToString("dd-MM-yyyy HH:mm")} {call.ContactpersoonNaam}")
-                        .SetFont(boldFont)
-                        .SetFontSize(11));
+                    string callDateStr = call.StartCall.HasValue
+                        ? call.StartCall.Value.ToString("dd-MM-yyyy") + "\u00A0" + call.StartCall.Value.ToString("HH:mm")
+                        : "-";
+
+                    doc.Add(new Paragraph($"Call {j + 1}\u2002{callDateStr}\u2002{call.ContactpersoonNaam ?? ""}")
+                        .SetFont(boldFont).SetFontSize(9));
 
                     doc.Add(new Paragraph(call.ExterneNotities ?? "-")
-                        .SetFont(normalFont)
-                        .SetFontSize(8));
+                        .SetFont(normalFont).SetFontSize(8));
                 }
 
                 // ===== CONTACT PERSONEN =====
 
                 doc.Add(CreateSeparator());
-
-                doc.Add(new Paragraph("Contact Personen:")
-                    .SetFont(boldFont)
-                    .SetFontSize(11));
+                doc.Add(new Paragraph("Contact Personen:").SetFont(boldFont).SetFontSize(10));
 
                 List<string> contactpersonen = new List<string>();
 
@@ -262,26 +225,23 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     {
                         contactpersonen.Add(naam);
 
-                        doc.Add(new Paragraph(naam)
-                            .SetFont(boldFont)
-                            .SetFontSize(11));
+                        doc.Add(new Paragraph(naam).SetFont(boldFont).SetFontSize(9));
+
+                        Table contactTable = new Table(new float[] { COL1, COL2 });
 
                         if (call.ContactpersoonTelefoonNummer != null)
-                            doc.Add(new Paragraph("Telefoonnummer: " + call.ContactpersoonTelefoonNummer)
-                                .SetFont(normalFont)
-                                .SetFontSize(8));
+                            AddRow(contactTable, "Telefoonnummer:", call.ContactpersoonTelefoonNummer, boldFont, normalFont);
 
                         if (call.ContactpersoonEmail != null)
-                            doc.Add(new Paragraph("Email: " + call.ContactpersoonEmail)
-                                .SetFont(normalFont)
-                                .SetFontSize(8));
+                            AddRow(contactTable, "Email:", call.ContactpersoonEmail, boldFont, normalFont);
+
+                        doc.Add(contactTable);
                     }
                 }
 
                 // ===== FOOTER =====
 
                 string footerText = "Voilàp Netherlands B.V. | Hoogeveenenweg 204 | 2913 LV Nieuwerkerk a/d IJssel | www.elumatec.com";
-
                 PdfFont footerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
                 for (int p = 1; p <= pdf.GetNumberOfPages(); p++)
@@ -296,9 +256,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     pdfCanvas.Stroke();
 
                     using var canvas = new Canvas(pdfCanvas, pageSize);
-
                     canvas.SetFont(footerFont).SetFontSize(8);
-
                     canvas.ShowTextAligned(
                         footerText,
                         pageSize.GetWidth() / 2,
@@ -348,7 +306,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
         {
             table.AddCell(
                 new Cell()
-                    .Add(new Paragraph(label).SetFont(bold).SetFontSize(8))   // ← match size
+                    .Add(new Paragraph(label).SetFont(bold).SetFontSize(8))
                     .SetBorder(Border.NO_BORDER)
             );
             table.AddCell(
