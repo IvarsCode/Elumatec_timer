@@ -3,58 +3,64 @@ using System.Linq;
 using Elumatec.Tijdregistratie.Models;
 using Elumatec.Tijdregistratie.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Data.Common;
 
 namespace Elumatec.Tijdregistratie.Data
 {
     public static class InterventieFormRepository
     {
-
         /// Saves or updates an Interventie and creates a new InterventieCall record
-
         public static void Save(
-    AppDbContext db,
-    Interventie? existing,
-    string bedrijfsnaam,
-    string machine,
-    int klantId,
-    string? straatNaam,
-    string? adresNummer,
-    string? postcode,
-    string? stad,
-    string? land,
-    int medewerkerId,
-    string contactpersoonNaam,
-    string? contactpersoonEmail,
-    string? contactpersoonTelefoon,
-    string? interneNotities,
-    string? externeNotities,
-    DateTime? callStartTime,
-    DateTime? callEndTime)
+            AppDbContext db,
+            Interventie? existing,
+            string bedrijfsnaam,
+            string machine,
+            int klantId,
+            string? straatNaam,
+            string? adresNummer,
+            string? postcode,
+            string? stad,
+            string? land,
+            int medewerkerId,
+            string contactpersoonNaam,
+            string? contactpersoonEmail,
+            string? contactpersoonTelefoon,
+            string? interneNotities,
+            string? externeNotities,
+            DateTime? callStartTime,
+            DateTime? callEndTime)
         {
             var helpers = new AppStateHelpers(db);
             int callDurationSeconds = 0;
+
             if (callStartTime.HasValue && callEndTime.HasValue)
             {
+                if (callEndTime < callStartTime)
+                    throw new ArgumentException("callEndTime cannot be before callStartTime");
                 callDurationSeconds = (int)(callEndTime.Value - callStartTime.Value).TotalSeconds;
             }
+
+            using var transaction = db.Database.BeginTransaction();
 
             Interventie interventie;
 
             if (existing != null)
             {
-                interventie = db.Interventies.First(i => i.Id == existing.Id);
+                interventie = db.Interventies.FirstOrDefault(i => i.Id == existing.Id)
+                    ?? throw new Exception($"Interventie with ID {existing.Id} not found");
 
+                // Update fields
                 interventie.Machine = machine;
                 interventie.BedrijfNaam = bedrijfsnaam;
                 interventie.KlantId = klantId;
-                interventie.StraatNaam = straatNaam;
-                interventie.AdresNummer = adresNummer;
-                interventie.Postcode = postcode;
-                interventie.Stad = stad;
-                interventie.Land = land;
 
-                // Create call
+                // Only update if new values are provided
+                if (straatNaam != null) interventie.StraatNaam = straatNaam;
+                if (adresNummer != null) interventie.AdresNummer = adresNummer;
+                if (postcode != null) interventie.Postcode = postcode;
+                if (stad != null) interventie.Stad = stad;
+                if (land != null) interventie.Land = land;
+
+                // Create new call
                 var newCall = new InterventieCall
                 {
                     Id = helpers.GetNextPrefixedId("interventie_call"),
@@ -69,8 +75,8 @@ namespace Elumatec.Tijdregistratie.Data
                     EindCall = callEndTime
                 };
                 db.InterventieCalls.Add(newCall);
-                db.SaveChanges();
 
+                // Update TotaleLooptijd and most recent call
                 interventie.TotaleLooptijd += callDurationSeconds;
                 interventie.IdRecentsteCall = newCall.Id;
 
@@ -78,6 +84,7 @@ namespace Elumatec.Tijdregistratie.Data
             }
             else
             {
+                // Create new intervention
                 interventie = new Interventie
                 {
                     Id = helpers.GetNextPrefixedId("interventies"),
@@ -96,6 +103,7 @@ namespace Elumatec.Tijdregistratie.Data
                 db.Interventies.Add(interventie);
                 db.SaveChanges();
 
+                // Create first call
                 var newCall = new InterventieCall
                 {
                     Id = helpers.GetNextPrefixedId("interventie_call"),
@@ -110,20 +118,23 @@ namespace Elumatec.Tijdregistratie.Data
                     EindCall = callEndTime
                 };
                 db.InterventieCalls.Add(newCall);
-                db.SaveChanges();
 
+                // Link to recent call
                 interventie.IdRecentsteCall = newCall.Id;
                 db.SaveChanges();
             }
+
+            transaction.Commit();
         }
+
         public static void UpdateCall(
-    AppDbContext db,
-    int callId,
-    string contactpersoonNaam,
-    string? contactpersoonEmail,
-    string? contactpersoonTelefoon,
-    string? interneNotities,
-    string? externeNotities)
+            AppDbContext db,
+            int callId,
+            string contactpersoonNaam,
+            string? contactpersoonEmail,
+            string? contactpersoonTelefoon,
+            string? interneNotities,
+            string? externeNotities)
         {
             var call = db.InterventieCalls.FirstOrDefault(c => c.Id == callId);
             if (call == null) throw new Exception($"InterventieCall with ID {callId} not found");

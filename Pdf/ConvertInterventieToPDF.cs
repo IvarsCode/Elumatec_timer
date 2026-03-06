@@ -45,159 +45,245 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 using var writer = new PdfWriter(filePath);
                 using var pdf = new PdfDocument(writer);
                 using var doc = new Document(pdf, PageSize.A4);
+
                 doc.SetMargins(30, 30, 50, 30);
 
                 PdfFont boldFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 PdfFont normalFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-                // ===== HEADER =====
-                Table header = new Table(new float[] { 70, 30 }).UseAllAvailableWidth();
-                header.AddCell(new Cell()
-                    .Add(new Paragraph("WERKBON - WB-2025-1846").SetFont(boldFont))
-                    .SetBorder(Border.NO_BORDER));
+                doc.SetFont(normalFont);
+                doc.SetFontSize(8);
 
-                header.AddCell(new Cell()
-                    .Add(new Paragraph("Contact:                       .\nservice.nl@voilap.com\n+31 180 315 858").SetFontSize(11))
-                    .SetTextAlignment(TextAlignment.RIGHT)
-                    .SetBorder(Border.NO_BORDER));
+                // ===== HEADER =====
+
+                Table header = new Table(new float[] { 50, 50, 50, 50, 50, 50, 10 }).UseAllAvailableWidth();
+                header.SetBorder(Border.NO_BORDER);
+
+                // Left: WERKBON title
+                header.AddCell(
+                    new Cell()
+                        .Add(new Paragraph("WERKBON")
+                            .SetFont(boldFont)
+                            .SetFontSize(11))
+                        .SetBorder(Border.NO_BORDER)
+                        .SetVerticalAlignment(VerticalAlignment.TOP)
+                );
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+                header.AddCell(new Cell().SetBorder(Border.NO_BORDER)); // Empty cell for spacing   
+
+                // Right: Contact info — left-aligned text, right-aligned cell
+                Cell contactCell = new Cell()
+                    .SetBorder(Border.NO_BORDER)
+                    .SetVerticalAlignment(VerticalAlignment.TOP)
+                    .SetTextAlignment(TextAlignment.RIGHT);
+
+                contactCell.Add(new Paragraph("Contact:")
+                    .SetFont(boldFont)
+                    .SetFontSize(11)
+                    .SetTextAlignment(TextAlignment.LEFT)
+                    .SetMarginBottom(0));
+
+                contactCell.Add(new Paragraph("service.nl@voilap.com")
+                    .SetFont(normalFont)
+                    .SetFontSize(8)
+                    .SetTextAlignment(TextAlignment.LEFT)
+                    .SetMargin(0));
+
+                contactCell.Add(new Paragraph("+31 180 315 858")
+                    .SetFont(normalFont)
+                    .SetFontSize(8)
+                    .SetTextAlignment(TextAlignment.LEFT)
+                    .SetMargin(0));
+
+                header.AddCell(contactCell);
 
                 doc.Add(header);
                 doc.Add(CreateSeparator());
 
-                // ===== ALGEMEEN =====
-                doc.Add(new Paragraph("Algemeen").SetFont(boldFont).SetFontSize(20));
-                Table algemeen = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
-                AddRow(algemeen, "Servicemonteur:", medewerkerNaam, boldFont, normalFont);
+                // ===== ONLINE SUPPORT =====
+
+                doc.Add(new Paragraph("ONLINE SUPPORT")
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
+
+                Table algemeen = new Table(new float[] { 40, 60 }).UseAllAvailableWidth();
+
+                AddRow(algemeen, "Geholpen door:", medewerkerNaam, boldFont, normalFont);
                 AddRow(algemeen, "Uitvoerdatum:", DateTime.Now.ToString("dd-MM-yyyy HH:mm"), boldFont, normalFont);
-                AddRow(algemeen, "Type werkzaamheden:", "Service / interventie", boldFont, normalFont);
+
                 doc.Add(algemeen);
                 doc.Add(CreateSeparator());
 
-                // ===== ADRES =====
-                doc.Add(new Paragraph("Uitvoeringsadres").SetFont(boldFont).SetFontSize(20));
-                Table adres = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
-                AddRow(adres, "Bedrijf:",
-                string.IsNullOrWhiteSpace(interventie.BedrijfNaam) ? "-" : interventie.BedrijfNaam,
-                boldFont, normalFont);
-                AddRow(adres, "Adres",
+                // ===== BEDRIJF =====
+
+                doc.Add(new Paragraph("Bedrijf:")
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
+
+                Table adres = new Table(new float[] { 40, 60 }).UseAllAvailableWidth();
+
+                AddRow(adres, "Naam:",
+                    string.IsNullOrWhiteSpace(interventie.BedrijfNaam) ? "-" : interventie.BedrijfNaam,
+                    boldFont, normalFont);
+
+                AddRow(adres, "Adres:",
                     $"{interventie.StraatNaam ?? "-"} {interventie.AdresNummer ?? ""}",
                     boldFont, normalFont);
-                AddRow(adres, "Postcode:",
-                    string.IsNullOrWhiteSpace(interventie.Postcode) ? "-" : interventie.Postcode,
+
+                AddRow(adres, "Plaats:",
+                    (string.IsNullOrWhiteSpace(interventie.Postcode) ? "-" : interventie.Postcode)
+                    + (string.IsNullOrWhiteSpace(interventie.Stad) ? "" : $" {interventie.Stad}"),
                     boldFont, normalFont);
-                AddRow(adres, "Stad:",
-                    string.IsNullOrWhiteSpace(interventie.Stad) ? "-" : interventie.Stad,
-                    boldFont, normalFont);
+
                 AddRow(adres, "Land:",
                     string.IsNullOrWhiteSpace(interventie.Land) ? "-" : interventie.Land,
                     boldFont, normalFont);
-                doc.Add(adres);
 
+                doc.Add(adres);
                 doc.Add(CreateSeparator());
 
                 // ===== MACHINE =====
-                doc.Add(new Paragraph("Machine(s)").SetFont(boldFont).SetFontSize(20));
-                Table machineTbl = new Table(new float[] { 50, 50 }).UseAllAvailableWidth();
-                AddRow(machineTbl, "Omschrijving:", interventie.Machine ?? "-", boldFont, normalFont);
-                AddRow(machineTbl, "Besturing:", "Elumatec", boldFont, normalFont);
-                doc.Add(machineTbl);
+
+                doc.Add(new Paragraph($"Support verleent op:  {interventie.Machine ?? "-"}")
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
+
                 doc.Add(CreateSeparator());
 
-                // ===== TIJDEN =====
-                doc.Add(new Paragraph("Gewerkte tijd(en)").SetFont(boldFont).SetFontSize(20));
+                // ===== GEWERKTE TIJD =====
+
+                doc.Add(new Paragraph("Gewerkte tijd(en)")
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
+
                 Table tijden = new Table(new float[] { 5, 25, 25, 10, 25 }).UseAllAvailableWidth();
+
                 tijden.AddHeaderCell(Header("#", boldFont));
                 tijden.AddHeaderCell(Header("Begintijd", boldFont));
                 tijden.AddHeaderCell(Header("Eindtijd", boldFont));
                 tijden.AddHeaderCell(Header("Totaal", boldFont));
                 tijden.AddHeaderCell(Header("ContactPersoon", boldFont));
+
                 int i = 0;
+
                 foreach (var call in calls)
                 {
                     i++;
-                    // Safely handle nullable start/end times
-                    string startText = call.StartCall.HasValue ? call.StartCall.Value.ToString("dd-MM-yyyy HH:mm") : "-";
-                    string endText = call.EindCall.HasValue ? call.EindCall.Value.ToString("dd-MM-yyyy HH:mm") : "-";
 
-                    string durationText;
+                    string startText = call.StartCall?.ToString("dd-MM-yyyy HH:mm") ?? "-";
+                    string endText = call.EindCall?.ToString("dd-MM-yyyy HH:mm") ?? "-";
+
+                    string durationText = "-";
+
                     if (call.StartCall.HasValue && call.EindCall.HasValue)
                     {
                         var duration = call.EindCall.Value - call.StartCall.Value;
                         durationText = duration.ToString(@"hh\:mm");
                     }
-                    else
-                    {
-                        durationText = "-";
-                    }
 
                     string contactNaam = call.ContactpersoonNaam ?? "-";
 
-                    tijden.AddCell(i.ToString());
-                    tijden.AddCell(startText);
-                    tijden.AddCell(endText);
-                    tijden.AddCell(durationText);
-                    tijden.AddCell(contactNaam);
+                    tijden.AddCell(new Paragraph(i.ToString()).SetFontSize(8));
+                    tijden.AddCell(new Paragraph(startText).SetFontSize(8));
+                    tijden.AddCell(new Paragraph(endText).SetFontSize(8));
+                    tijden.AddCell(new Paragraph(durationText).SetFontSize(8));
+                    tijden.AddCell(new Paragraph(contactNaam).SetFontSize(8));
                 }
+
                 doc.Add(tijden);
+
                 var total = TimeSpan.FromMinutes(
                     calls
                         .Where(c => c.StartCall.HasValue && c.EindCall.HasValue)
                         .Sum(c => Math.Floor((c.EindCall!.Value - c.StartCall!.Value).TotalMinutes))
                 );
-                doc.Add(
-                    new Paragraph(
-                        "Totaal gewerkte tijd: " +
-                        total.ToString(@"hh\:mm")
-                    ).SetFont(boldFont)
-                );
 
-
-
-
-                doc.Add(new Paragraph(" "));
+                doc.Add(new Paragraph("Totaal gewerkte tijd: " + total.ToString(@"hh\:mm"))
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
 
                 // ===== NOTITIES =====
-                doc.Add(new Paragraph("Gespreksnotities: ").SetFont(boldFont).SetFontSize(20));
+
+                doc.Add(CreateSeparator());
+
+                doc.Add(new Paragraph("Gespreksnotities:")
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
+
                 for (int j = 0; j < calls.Count; j++)
                 {
                     var call = calls[j];
 
-                    if (call == null) continue;
-
                     doc.Add(CreateSeparator());
-                    doc.Add(new Paragraph($"Call number {j + 1} {call.StartCall?.ToString("dd-MM-yyyy HH:mm") ?? ""} {call.ContactpersoonNaam}").SetFont(boldFont).SetFontSize(14));
-                    doc.Add(new Paragraph(call.ExterneNotities ?? "-").SetFont(normalFont));
-                    doc.Add(new Paragraph(" "));
 
+                    doc.Add(new Paragraph($"Call {j + 1} {call.StartCall?.ToString("dd-MM-yyyy HH:mm")} {call.ContactpersoonNaam}")
+                        .SetFont(boldFont)
+                        .SetFontSize(11));
+
+                    doc.Add(new Paragraph(call.ExterneNotities ?? "-")
+                        .SetFont(normalFont)
+                        .SetFontSize(8));
                 }
-                doc.Add(CreateSeparator());
-                doc.Add(new Paragraph(" "));
 
-                doc.Add(new Paragraph("Contact Personen: ").SetFont(boldFont).SetFontSize(20));
-                List<string> Contactpersonen = new List<string>();
+                // ===== CONTACT PERSONEN =====
+
+                doc.Add(CreateSeparator());
+
+                doc.Add(new Paragraph("Contact Personen:")
+                    .SetFont(boldFont)
+                    .SetFontSize(11));
+
+                List<string> contactpersonen = new List<string>();
+
                 foreach (var call in calls)
                 {
-                    var contactNaam = call.ContactpersoonNaam ?? "-";
-                    if (!Contactpersonen.Contains(contactNaam) && contactNaam != "-")
+                    var naam = call.ContactpersoonNaam ?? "-";
+
+                    if (!contactpersonen.Contains(naam) && naam != "-")
                     {
-                        Contactpersonen.Add(contactNaam);
-                        doc.Add(new Paragraph(contactNaam).SetFont(boldFont).SetFontSize(11));
+                        contactpersonen.Add(naam);
+
+                        doc.Add(new Paragraph(naam)
+                            .SetFont(boldFont)
+                            .SetFontSize(11));
+
                         if (call.ContactpersoonTelefoonNummer != null)
-                        {
-                            doc.Add(new Paragraph("Telefoonnummer: " + call.ContactpersoonTelefoonNummer).SetFont(normalFont));
-                        }
+                            doc.Add(new Paragraph("Telefoonnummer: " + call.ContactpersoonTelefoonNummer)
+                                .SetFont(normalFont)
+                                .SetFontSize(8));
+
                         if (call.ContactpersoonEmail != null)
-                        {
-                            doc.Add(new Paragraph("Email: " + call.ContactpersoonEmail).SetFont(normalFont));
-                        }
-                        doc.Add(new Paragraph(" "));
+                            doc.Add(new Paragraph("Email: " + call.ContactpersoonEmail)
+                                .SetFont(normalFont)
+                                .SetFontSize(8));
                     }
                 }
 
-                doc.Add(new Paragraph("  "));
+                // ===== FOOTER =====
 
                 string footerText = "Voilàp Netherlands B.V. | Hoogeveenenweg 204 | 2913 LV Nieuwerkerk a/d IJssel | www.elumatec.com";
+
                 PdfFont footerFont = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
                 for (int p = 1; p <= pdf.GetNumberOfPages(); p++)
                 {
                     var page = pdf.GetPage(p);
@@ -210,9 +296,15 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                     pdfCanvas.Stroke();
 
                     using var canvas = new Canvas(pdfCanvas, pageSize);
+
                     canvas.SetFont(footerFont).SetFontSize(8);
-                    canvas.ShowTextAligned(footerText, pageSize.GetWidth() / 2, 20, TextAlignment.CENTER);
-                    canvas.Close();
+
+                    canvas.ShowTextAligned(
+                        footerText,
+                        pageSize.GetWidth() / 2,
+                        20,
+                        TextAlignment.CENTER
+                    );
                 }
             }
             catch (Exception ex)
@@ -223,16 +315,16 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
             return filePath;
         }
 
-        // ===== DATABASE METHODS =====
+        // ===== DATABASE =====
+
         private Interventie? GetInterventie(int id)
         {
             try
             {
                 return InterventieRepository.GetById(_db, id);
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"[GetInterventie PDF] Exception: {ex}");
                 return null;
             }
         }
@@ -244,35 +336,40 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                 var interventie = InterventieRepository.GetById(_db, interventieId);
                 return interventie?.Calls?.ToList() ?? new List<InterventieCall>();
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"[GetInterventieCalls PDF] Exception: {ex}");
                 return new List<InterventieCall>();
             }
         }
 
         // ===== HELPERS =====
+
         private static void AddRow(Table table, string label, string value, PdfFont bold, PdfFont normal)
         {
-            table.AddCell(new Cell().Add(new Paragraph(label).SetFont(bold)).SetBorder(Border.NO_BORDER));
-            table.AddCell(new Cell().Add(new Paragraph(value).SetFont(normal)).SetBorder(Border.NO_BORDER));
+            table.AddCell(
+                new Cell()
+                    .Add(new Paragraph(label).SetFont(bold).SetFontSize(8))   // ← match size
+                    .SetBorder(Border.NO_BORDER)
+            );
+            table.AddCell(
+                new Cell()
+                    .Add(new Paragraph(value).SetFont(normal).SetFontSize(8))
+                    .SetBorder(Border.NO_BORDER)
+            );
         }
 
-        private static Cell Header(string text, PdfFont bold) =>
-            new Cell()
-                .Add(new Paragraph(text).SetFont(bold))
+        private static Cell Header(string text, PdfFont bold)
+        {
+            return new Cell()
+                .Add(new Paragraph(text).SetFont(bold).SetFontSize(8))
                 .SetBackgroundColor(ColorConstants.LIGHT_GRAY);
+        }
 
         private static LineSeparator CreateSeparator()
         {
-            var solidLine = new SolidLine(1f);
-            solidLine.SetColor(ColorConstants.BLACK);
-
-            var line = new LineSeparator(solidLine);
-            line.SetWidth(UnitValue.CreatePercentValue(100));
-            line.SetMarginTop(10);
-            line.SetMarginBottom(10);
-
+            var line = new LineSeparator(new SolidLine(1f));
+            line.SetMarginTop(5);
+            line.SetMarginBottom(5);
             return line;
         }
     }
