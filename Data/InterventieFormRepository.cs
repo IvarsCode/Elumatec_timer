@@ -41,11 +41,9 @@ namespace Elumatec.Tijdregistratie.Data
 
             using var transaction = db.Database.BeginTransaction();
 
-            Interventie interventie;
-
             if (existing != null)
             {
-                interventie = db.Interventies.FirstOrDefault(i => i.Id == existing.Id)
+                var interventie = db.Interventies.FirstOrDefault(i => i.Id == existing.Id)
                     ?? throw new Exception($"Interventie with ID {existing.Id} not found");
 
                 // Update fields
@@ -53,14 +51,14 @@ namespace Elumatec.Tijdregistratie.Data
                 interventie.BedrijfNaam = bedrijfsnaam;
                 interventie.KlantId = klantId;
 
-                // Only update if new values are provided
+                // Only update address if new values are provided
                 if (straatNaam != null) interventie.StraatNaam = straatNaam;
                 if (adresNummer != null) interventie.AdresNummer = adresNummer;
                 if (postcode != null) interventie.Postcode = postcode;
                 if (stad != null) interventie.Stad = stad;
                 if (land != null) interventie.Land = land;
 
-                // Create new call
+                // Create new call record for this session
                 var newCall = new InterventieCall
                 {
                     Id = helpers.GetNextPrefixedId("interventie_call"),
@@ -85,7 +83,7 @@ namespace Elumatec.Tijdregistratie.Data
             else
             {
                 // Create new intervention
-                interventie = new Interventie
+                var interventie = new Interventie
                 {
                     Id = helpers.GetNextPrefixedId("interventies"),
                     Machine = machine,
