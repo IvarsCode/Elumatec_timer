@@ -203,7 +203,7 @@ namespace Elumatec.Tijdregistratie.Pdf.ConvertInterventieToPDF
                         ? call.StartCall.Value.ToString("dd-MM-yyyy") + "\u00A0" + call.StartCall.Value.ToString("HH:mm")
                         : "-";
 
-                    doc.Add(new Paragraph($"Call {j + 1}\u2002{callDateStr}\u2002{call.ContactpersoonNaam ?? ""}")
+                    doc.Add(new Paragraph($"Call {j + 1}  \u2002{callDateStr}\u2002 {call.ContactpersoonNaam ?? ""}")
                         .SetFont(boldFont).SetFontSize(9));
 
                     doc.Add(new Paragraph(call.ExterneNotities ?? "-")
