@@ -12,17 +12,26 @@ namespace Elumatec.Tijdregistratie.Views
         {
             InitializeComponent();
 
-            // 🔹 Create DbContext options
             var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "elumatec.db");
             var options = new DbContextOptionsBuilder<AppDbContext>()
                 .UseSqlite($"Data Source={dbPath}")
                 .Options;
 
-            // 🔹 Create DbContext
             var dbContext = new AppDbContext(options);
 
-            // 🔹 Assign MainViewModel as DataContext for navigation
             DataContext = new MainViewModel(dbContext);
+        }
+
+        protected override void OnClosing(WindowClosingEventArgs e)
+        {
+            if (DataContext is MainViewModel main &&
+                main.CurrentView is IClosingGuard guard)
+            {
+                if (!guard.OnWindowCloseRequested())
+                    e.Cancel = true;
+            }
+
+            base.OnClosing(e);
         }
     }
 }

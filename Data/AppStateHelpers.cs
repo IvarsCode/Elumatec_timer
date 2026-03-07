@@ -45,38 +45,15 @@ namespace Elumatec.Tijdregistratie.Data
 
             int nextIncrement = 1;
 
-            try
+            int? maxId = tableName switch
             {
-                var wasOpen = _db.Database.GetDbConnection().State == System.Data.ConnectionState.Open;
+                "interventies" => _db.Interventies.Any() ? _db.Interventies.Max(i => i.Id) : null,
+                "interventie_call" => _db.InterventieCalls.Any() ? _db.InterventieCalls.Max(c => c.Id) : null,
+                _ => throw new ArgumentException($"Unknown table: {tableName}", nameof(tableName))
+            };
 
-                if (!wasOpen)
-                    _db.Database.OpenConnection();
-
-                using var command = _db.Database.GetDbConnection().CreateCommand();
-
-                // Parameterized to prevent SQL injection (though table name can't be parameterized)
-                // Validate tableName to prevent injection
-                if (!IsValidTableName(tableName))
-                    throw new ArgumentException("Invalid table name", nameof(tableName));
-
-                command.CommandText = $"SELECT MAX(id) FROM {tableName}";
-
-                var result = command.ExecuteScalar();
-
-                if (result != DBNull.Value && result != null)
-                {
-                    var maxId = Convert.ToInt32(result);
-                    nextIncrement = (maxId % 100000) + 1;
-                }
-
-                if (!wasOpen)
-                    _db.Database.CloseConnection();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting next ID: {ex.Message}");
-                throw;
-            }
+            if (maxId.HasValue)
+                nextIncrement = (maxId.Value % 100000) + 1;
 
             return (prefix * 100000) + nextIncrement;
         }

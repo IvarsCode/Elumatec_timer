@@ -1034,7 +1034,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             {
                 if (allFieldsComplete)
                 {
-                    StatusMessage = "Alle velden ingevuld, door te pauzeren wordt de interventie opgeslagen";
+                    StatusMessage = "Alle velden ingevuld, door te op te slaan wordt de interventie opgeslagen";
                     StatusColor = "Green";
                 }
                 else if (allMustFillComplete)
@@ -1053,7 +1053,7 @@ namespace Elumatec.Tijdregistratie.ViewModels
             {
                 if (allFieldsComplete)
                 {
-                    StatusMessage = "Alle velden ingevuld, door te pauzeren wordt de interventie opgeslagen";
+                    StatusMessage = "Alle velden ingevuld, door op te slaan wordt de interventie opgeslagen";
                     StatusColor = "Green";
                 }
                 else
