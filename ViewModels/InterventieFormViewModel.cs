@@ -1039,12 +1039,14 @@ namespace Elumatec.Tijdregistratie.ViewModels
                 }
                 else if (allMustFillComplete)
                 {
+                    // Required fields are done, only optional contact fields missing
                     StatusMessage = "Niet alle contactgegevens zijn ingevuld. Als u wilt opslaan zonder deze gegevens klik dan nog een keer";
                     StatusColor = "Yellow";
                 }
                 else
                 {
-                    StatusMessage = "Contactgegevens zijn niet ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
+                    // Required fields (including externe notities) are still missing
+                    StatusMessage = "Niet alle verplichte velden zijn ingevuld; als u wilt stoppen zonder opslaan klik dan nog een keer";
                     StatusColor = "Red";
                 }
             }
