@@ -5,7 +5,8 @@
         x:Class="Elumatec.Tijdregistratie.Views.TijdregistratieWindow"
         Width="970"
         Height="700"
-        Title="Elumatec">
+        Title="Elumatec"
+        Icon="/Assets/elumatec.ico">
 
     <Window.DataTemplates>
         <!-- Map UserSelectionViewModel to UserSelectionView -->
