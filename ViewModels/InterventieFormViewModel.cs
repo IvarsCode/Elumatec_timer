@@ -1070,6 +1070,58 @@ namespace Elumatec.Tijdregistratie.ViewModels
         {
             _timer.Stop();
 
+            // If there's an active new call , save it first
+            if (!IsArchived && CurrentlyLoadedCall == null)
+            {
+                var currentBedrijfsnaam = (Bedrijfsnaam ?? "").Trim();
+                var currentMachine = (Machine ?? "").Trim();
+                var currentInterneNotities = (InterneNotities ?? "").Trim();
+                var currentExterneNotities = (ExterneNotities ?? "").Trim();
+                var cpNaam = (ContactpersoonNaam ?? "").Trim();
+                var cpEmail = (ContactpersoonEmail ?? "").Trim();
+                var cpTelefoon = (ContactpersoonTelefoon ?? "").Trim();
+
+                bool hasAnything = !string.IsNullOrWhiteSpace(currentBedrijfsnaam) ||
+                                   !string.IsNullOrWhiteSpace(currentMachine) ||
+                                   !string.IsNullOrWhiteSpace(currentExterneNotities) ||
+                                   !string.IsNullOrWhiteSpace(cpNaam);
+
+                if (hasAnything)
+                {
+                    if (_selectedBedrijf == null && _existingInterventie == null)
+                    {
+                        StatusMessage = "Selecteer een bedrijf voordat u opslaat";
+                        StatusColor = "Red";
+                        _timer.Start();
+                        return;
+                    }
+
+                    InterventieFormRepository.Save(
+                        db: _db,
+                        existing: _existingInterventie,
+                        bedrijfsnaam: currentBedrijfsnaam,
+                        machine: currentMachine,
+                        klantId: _selectedBedrijf?.Id ?? _existingInterventie!.KlantId,
+                        straatNaam: _selectedBedrijf?.StraatNaam ?? _existingInterventie?.StraatNaam,
+                        adresNummer: _selectedBedrijf?.AdresNummer ?? _existingInterventie?.AdresNummer,
+                        postcode: _selectedBedrijf?.Postcode ?? _existingInterventie?.Postcode,
+                        stad: _selectedBedrijf?.Stad ?? _existingInterventie?.Stad,
+                        land: _selectedBedrijf?.Land ?? _existingInterventie?.Land,
+                        medewerkerId: _currentUser.Id,
+                        contactpersoonNaam: cpNaam,
+                        contactpersoonEmail: cpEmail,
+                        contactpersoonTelefoon: cpTelefoon,
+                        interneNotities: currentInterneNotities,
+                        externeNotities: currentExterneNotities,
+                        callStartTime: _callStartTime,
+                        callEndTime: DateTime.Now
+                    );
+
+                    if (_existingInterventie != null)
+                        PreviousCalls = LoadCallsForInterventie(_existingInterventie.Id);
+                }
+            }
+
             try
             {
                 int interventieId = _existingInterventie?.Id ?? 0;
@@ -1087,7 +1139,6 @@ namespace Elumatec.Tijdregistratie.ViewModels
 
                 PdfDownloaded = true;
 
-                // Only show the archive confirmation if not already archived
                 if (!IsArchived)
                     ShowPdfArchiveConfirmation = true;
             }

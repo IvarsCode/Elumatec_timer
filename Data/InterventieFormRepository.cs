@@ -29,6 +29,21 @@ namespace Elumatec.Tijdregistratie.Data
             DateTime? callStartTime,
             DateTime? callEndTime)
         {
+            // Round start down to the minute, round end up to the next minute
+            if (callStartTime.HasValue)
+                callStartTime = new DateTime(
+                    callStartTime.Value.Year, callStartTime.Value.Month, callStartTime.Value.Day,
+                    callStartTime.Value.Hour, callStartTime.Value.Minute, 0);
+
+            if (callEndTime.HasValue)
+                callEndTime = callEndTime.Value.Second > 0 || callEndTime.Value.Millisecond > 0
+                    ? new DateTime(
+                        callEndTime.Value.Year, callEndTime.Value.Month, callEndTime.Value.Day,
+                        callEndTime.Value.Hour, callEndTime.Value.Minute, 0).AddMinutes(1)
+                    : new DateTime(
+                        callEndTime.Value.Year, callEndTime.Value.Month, callEndTime.Value.Day,
+                        callEndTime.Value.Hour, callEndTime.Value.Minute, 0);
+
             var helpers = new AppStateHelpers(db);
             int callDurationSeconds = 0;
 
